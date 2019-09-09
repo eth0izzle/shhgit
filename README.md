@@ -1,6 +1,6 @@
 # **shhgit**: find GitHub secrets in real time
 
-**Shhgit finds secrets and sensitive files across GitHub code commited in *near* real time by listening to the [GitHub Events API](https://developer.github.com/v3/activity/events/). **
+**Shhgit finds secrets and sensitive files across GitHub code commited in *near* real time by listening to the [GitHub Events API](https://developer.github.com/v3/activity/events/).**
 
 <p align="center">
 <img src="https://www.darkport.co.uk/assets/img/shhgit.png" alt="shhgit" width="200" />
@@ -8,13 +8,13 @@
 
 Finding secrets in GitHub is nothing new. There are many great tools available to help with this depending on which side of the fence you sit. On the adversarial side, popular tools such as <a href="https://github.com/michenriksen/gitrob">gitrob</a> and <a href="https://github.com/dxa4481/truffleHog">truggleHog</a> focus on digging in to commit history to find secret tokens from specific repositories, users or organisaitons. On the defensive side, GitHub themsleves are actively scanning for secrets through their [token scanning](https://help.github.com/en/articles/about-token-scanning) project. Their objective is to identify secret tokens within commited code in real-time and notify the service provider to action. So in theory if any AWS secret keys are comittied to GitHub, Amazon will be notified and automatically revoke them.
 
-**shhgit is extremely useful in your bug bounty endeavours**
+**shhgit would make an extremely useful addition to your bug bounty toolkit and workflows.**
 
 <img src="https://www.darkport.co.uk/assets/img/shhgit-example.png" alt="shhgit" />
 
 ## Installation
 
-You can use the [precompiled binaries](https://wwwgithub.com/eth0izzle/shhgit/releases) **or** build from source:
+You can use the [precompiled binaries](https://www.github.com/eth0izzle/shhgit/releases) **or** build from source:
 
 1. Install [Go](https://golang.org/doc/install) for your platform.
 2. `$ go get github.com/eth0izzle/shhgit` will download and build shhgit.

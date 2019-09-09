@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -51,7 +52,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 
-	if len(c.GitHubAccessTokens) < 1 {
+	if len(c.GitHubAccessTokens) < 1 || strings.TrimSpace(strings.Join(c.GitHubAccessTokens, "")) == "" {
 		return errors.New("You need to provide at least one GitHub Access Token. See https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line")
 	}
 
