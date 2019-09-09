@@ -1,0 +1,12 @@
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+workspace.code-workspace
+build.sh
+vendor/
+build/
+.vscode/
