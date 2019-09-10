@@ -1,6 +1,6 @@
 # **shhgit**: find GitHub secrets in real time
 
-**Shhgit finds secrets and sensitive files across GitHub code committed in *near* real time by listening to the [GitHub Events API](https://developer.github.com/v3/activity/events/).**
+**Shhgit finds secrets and sensitive files across GitHub code and Gists committed in *near* real time by listening to the [GitHub Events API](https://developer.github.com/v3/activity/events/).**
 
 <p align="center">
 <img src="https://www.darkport.co.uk/assets/img/shhgit.png" alt="shhgit" width="200" />
@@ -26,6 +26,8 @@ shhgit needs to access the public GitHub API so you will need to obtain and prov
 
 Unlike other tools, you don't need to pass any targets with shhgit. Simply run `$ shhgit` to start watching GitHub commits and find secrets or sensitive files matching the included 120 signatures.
 
+Alternatively, you can forgo the signatures and use shhgit with a search query, e.g. to find all AWS keys you could use `shhgit --search-query AWS_ACCESS_KEY_ID=AKIA`
+
 ### Options
 
 ```
@@ -45,6 +47,10 @@ Unlike other tools, you don't need to pass any targets with shhgit. Simply run `
         Only clone repositories with this many stars or higher. Set to 0 to ignore star count (default 0)
 --path-checks
         Set to false to disable file name/path signature checking, i.e. just match regex patterns (default true)
+--process-gists
+        Watch and process Gists in real time. Set to false to disable (default true)
+--search-query
+        Specify a search string to ignore signatures and filter on files containing this string (regex compatible)
 --silent
         Suppress all output except for errors
 --temp-directory

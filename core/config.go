@@ -48,6 +48,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = Config{}
 	type plain Config
 	err := unmarshal((*plain)(c))
+
 	if err != nil {
 		return err
 	}

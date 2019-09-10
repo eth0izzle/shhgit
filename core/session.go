@@ -22,7 +22,8 @@ type Session struct {
 	Options      *Options
 	Config       *Config
 	Signatures   []Signature
-	Repositories chan string
+	Repositories chan int64
+	Gists        chan string
 	Context      context.Context
 	Clients      []*GitHubClientWrapper
 	CsvWriter    *csv.Writer
@@ -125,7 +126,8 @@ func GetSession() *Session {
 	sessionSync.Do(func() {
 		session = &Session{
 			Context:      context.Background(),
-			Repositories: make(chan string, 1000),
+			Repositories: make(chan int64, 1000),
+			Gists:        make(chan string, 100),
 		}
 
 		if session.Options, err = ParseOptions(); err != nil {

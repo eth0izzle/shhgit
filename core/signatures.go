@@ -18,7 +18,7 @@ const (
 type Signature interface {
 	Name() string
 	Match(file MatchFile) (bool, string)
-	GetMatches(file MatchFile) []string
+	GetContentsMatches(file MatchFile) []string
 }
 
 type SimpleSignature struct {
@@ -56,7 +56,7 @@ func (s SimpleSignature) Match(file MatchFile) (bool, string) {
 	return (s.match == *haystack), matchPart
 }
 
-func (s SimpleSignature) GetMatches(file MatchFile) []string {
+func (s SimpleSignature) GetContentsMatches(file MatchFile) []string {
 	return nil
 }
 
@@ -89,7 +89,7 @@ func (s PatternSignature) Match(file MatchFile) (bool, string) {
 	return s.match.MatchString(*haystack), matchPart
 }
 
-func (s PatternSignature) GetMatches(file MatchFile) []string {
+func (s PatternSignature) GetContentsMatches(file MatchFile) []string {
 	matches := make([]string, 0)
 
 	for _, match := range s.match.FindAllSubmatch(file.Contents, -1) {

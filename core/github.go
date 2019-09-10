@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/google/go-github/github"
@@ -20,8 +19,9 @@ const (
 	sleep   = 30 * time.Second
 )
 
-func ReadEvents(session *Session) {
+func GetRepositories(session *Session) {
 	localCtx, cancel := context.WithCancel(session.Context)
+	defer cancel()
 	observedKeys := map[int64]bool{}
 
 	for c := time.Tick(sleep); ; {
@@ -45,6 +45,10 @@ func ReadEvents(session *Session) {
 				GetSession().Log.Important("Error getting GitHub events... trying again", err)
 			}
 
+			if resp.Rate.Remaining%1000 == 0 {
+				session.Log.Warn("Token %s has %d/%d calls remaining.", client.Token, resp.Rate.Remaining, resp.Rate.Limit)
+			}
+
 			newEvents := make([]*github.Event, 0, len(events))
 			for _, e := range events {
 				if observedKeys[e.GetRepo().GetID()] {
@@ -57,7 +61,7 @@ func ReadEvents(session *Session) {
 			for _, e := range newEvents {
 				if *e.Type == "PushEvent" {
 					observedKeys[e.GetRepo().GetID()] = true
-					session.Repositories <- e.GetRepo().GetName()
+					session.Repositories <- e.GetRepo().GetID()
 				}
 			}
 
@@ -79,10 +83,60 @@ func ReadEvents(session *Session) {
 	}
 }
 
-func GetRepository(session *Session, name string) *github.Repository {
-	ownerRepo := strings.Split(name, "/")
+func GetGists(session *Session) {
+	localCtx, cancel := context.WithCancel(session.Context)
+	defer cancel()
+
+	observedKeys := map[string]bool{}
+	opt := &github.GistListOptions{}
+
+	for c := time.Tick(sleep); ; {
+		client := session.GetClient()
+		gists, resp, err := client.Gists.ListAll(localCtx, opt)
+
+		if err != nil {
+			if _, ok := err.(*github.RateLimitError); ok {
+				session.Log.Warn("Token %s rate limited. Reset at %s", client.Token, resp.Rate.Reset)
+				client.RateLimitedUntil = time.Until(resp.Rate.Reset.Time)
+				break
+			}
+
+			if _, ok := err.(*github.AbuseRateLimitError); ok {
+				GetSession().Log.Fatal("GitHub API abused detected. Quitting...")
+			}
+
+			GetSession().Log.Important("Error getting GitHub Gists... trying again", err)
+		}
+
+		newGists := make([]*github.Gist, 0, len(gists))
+		for _, e := range gists {
+			if observedKeys[e.GetID()] {
+				continue
+			}
+
+			newGists = append(newGists, e)
+		}
+
+		for _, e := range newGists {
+			observedKeys[e.GetID()] = true
+			session.Gists <- e.GetGitPullURL()
+		}
+
+		opt.Since = time.Now()
+
+		select {
+		case <-c:
+			continue
+		case <-localCtx.Done():
+			cancel()
+			return
+		}
+	}
+}
+
+func GetRepository(session *Session, id int64) *github.Repository {
 	client := session.GetClient()
-	repo, resp, _ := client.Repositories.Get(session.Context, ownerRepo[0], ownerRepo[1])
+	repo, resp, _ := client.Repositories.GetByID(session.Context, id)
 
 	if resp.Rate.Remaining <= 1 {
 		session.Log.Warn("Token %s rate limited. Reset at %s", client.Token, resp.Rate.Reset)
@@ -90,8 +144,4 @@ func GetRepository(session *Session, name string) *github.Repository {
 	}
 
 	return repo
-}
-
-func GetRepositoryUrl(name string) string {
-	return baseUrl + "/" + name
 }
