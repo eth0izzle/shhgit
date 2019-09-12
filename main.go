@@ -21,7 +21,12 @@ func ProcessRepositories() {
 
 			for {
 				repositoryId := <-session.Repositories
-				repo := core.GetRepository(session, repositoryId)
+				repo, err := core.GetRepository(session, repositoryId)
+
+				if err != nil {
+					session.Log.Warn("Failed to retrieve repository %d: %s", repositoryId, err)
+					continue
+				}
 
 				if repo.GetPermissions()["pull"] &&
 					uint(repo.GetStargazersCount()) >= *session.Options.MinimumStars &&
@@ -129,7 +134,7 @@ func processRepositoryOrGist(url string) {
 }
 
 func main() {
-	session.Log.Info("%s v%s started. Loaded %d signatures. Using %d threads. Work dir: %s", core.Name, core.Version, len(session.Signatures), *session.Options.Threads, *session.Options.TempDirectory)
+	session.Log.Info("%s v%s started. Loaded %d signatures. Using %d GitHub tokens and %d threads. Work dir: %s", core.Name, core.Version, len(session.Signatures), len(session.Clients), *session.Options.Threads, *session.Options.TempDirectory)
 
 	if *session.Options.SearchQuery != "" {
 		session.Log.Important("Search Query '%s' given. Only returning matching results.", *session.Options.SearchQuery)

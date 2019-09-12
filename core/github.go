@@ -134,14 +134,18 @@ func GetGists(session *Session) {
 	}
 }
 
-func GetRepository(session *Session, id int64) *github.Repository {
+func GetRepository(session *Session, id int64) (*github.Repository, error) {
 	client := session.GetClient()
-	repo, resp, _ := client.Repositories.GetByID(session.Context, id)
+	repo, resp, err := client.Repositories.GetByID(session.Context, id)
+
+	if err != nil {
+		return nil, err
+	}
 
 	if resp.Rate.Remaining <= 1 {
 		session.Log.Warn("Token %s rate limited. Reset at %s", client.Token, resp.Rate.Reset)
 		client.RateLimitedUntil = time.Until(resp.Rate.Reset.Time)
 	}
 
-	return repo
+	return repo, nil
 }

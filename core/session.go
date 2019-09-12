@@ -61,8 +61,20 @@ func (s *Session) InitGitHubClients() {
 
 		client := github.NewClient(tc)
 		client.UserAgent = fmt.Sprintf("%s v%s", Name, Version)
+		_, _, err := client.Users.Get(s.Context, "")
+
+		if err != nil {
+			if _, ok := err.(*github.ErrorResponse); ok {
+				s.Log.Warn("Failed to validate token %s: %s", token, err)
+				continue
+			}
+		}
 
 		s.Clients = append(s.Clients, &GitHubClientWrapper{client, token, 0 * time.Second})
+	}
+
+	if len(s.Clients) < 1 {
+		s.Log.Fatal("No valid GitHub tokens provided. Quitting!")
 	}
 }
 
