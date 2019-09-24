@@ -18,7 +18,21 @@ I developed shhgit to raise awareness and bring to life the prevalence of this i
 
 ## Installation
 
-You can use the [precompiled binaries](https://www.github.com/eth0izzle/shhgit/releases) **or** build from source:
+### Prebuilt binaries
+
+**Note**: Doesn't require Go.
+
+You can use the [precompiled binaries](https://www.github.com/eth0izzle/shhgit/releases)
+
+### Arch Linux
+
+Install `shhgit` from the AUR.
+
+```bash
+yay -S shhgit
+```
+
+### Build from source
 
 1. Install [Go](https://golang.org/doc/install) for your platform.
 2. `$ go get github.com/eth0izzle/shhgit` will download and build shhgit.
