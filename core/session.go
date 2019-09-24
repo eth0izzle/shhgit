@@ -62,7 +62,7 @@ func (s *Session) InitGitHubClients() {
 		client := github.NewClient(tc)
 		client.UserAgent = fmt.Sprintf("%s v%s", Name, Version)
 
-		s.Clients = append(s.Clients, &GitHubClientWrapper{client, token, 0 * time.Second})
+		s.Clients = append(s.Clients, &GitHubClientWrapper{client, token, time.Now().Add(-1 * time.Hour)})
 	}
 }
 
@@ -70,15 +70,15 @@ func (s *Session) GetClient() *GitHubClientWrapper {
 	sleepTime := 0 * time.Second
 
 	for _, client := range s.Clients {
-		if client.RateLimitedUntil != 0 {
-			sleepTime = client.RateLimitedUntil
+		if client.RateLimitedUntil.After(time.Now()) {
+			sleepTime = time.Until(client.RateLimitedUntil)
 			continue
 		}
 
 		return client
 	}
 
-	s.Log.Warn("All GitHub tokens exchausted/rate limited. Sleeping until %s", sleepTime)
+	s.Log.Warn("All GitHub tokens exchausted/rate limited. Sleeping for %s", sleepTime.String())
 	time.Sleep(sleepTime)
 
 	return s.GetClient()
