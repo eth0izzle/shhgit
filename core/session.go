@@ -60,17 +60,18 @@ func (s *Session) InitGitHubClients() {
 		tc := oauth2.NewClient(s.Context, ts)
 
 		client := github.NewClient(tc)
+
 		client.UserAgent = fmt.Sprintf("%s v%s", Name, Version)
 		_, _, err := client.Users.Get(s.Context, "")
 
 		if err != nil {
 			if _, ok := err.(*github.ErrorResponse); ok {
-				s.Log.Warn("Failed to validate token %s: %s", token, err)
+				s.Log.Warn("Failed to validate token %s[..]: %s", token[:10], err)
 				continue
 			}
 		}
 
-		s.Clients = append(s.Clients, &GitHubClientWrapper{client, token, time.Now().Add(-1 * time.Hour)})
+		s.Clients = append(s.Clients, &GitHubClientWrapper{client, token, time.Now().Add(-1 * time.Second)})
 	}
 
 	if len(s.Clients) < 1 {

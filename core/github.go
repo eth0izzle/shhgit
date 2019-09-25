@@ -23,6 +23,7 @@ func GetRepositories(session *Session) {
 	localCtx, cancel := context.WithCancel(session.Context)
 	defer cancel()
 	observedKeys := map[int64]bool{}
+
 	for c := time.Tick(sleep); ; {
 		opt := &github.ListOptions{PerPage: perPage}
 		client := session.GetClient()
@@ -32,7 +33,7 @@ func GetRepositories(session *Session) {
 
 			if err != nil {
 				if _, ok := err.(*github.RateLimitError); ok {
-					session.Log.Warn("Token %s rate limited. Reset at %s", client.Token, resp.Rate.Reset)
+					session.Log.Warn("Token %s[..] rate limited. Reset at %s", client.Token[:10], resp.Rate.Reset)
 					client.RateLimitedUntil = resp.Rate.Reset.Time
 					break
 				}
@@ -44,10 +45,8 @@ func GetRepositories(session *Session) {
 				GetSession().Log.Important("Error getting GitHub events... trying again", err)
 			}
 
-			session.Log.Info("Token %s: Requests reamining %d", client.Token[:6], resp.Rate.Remaining)
-			if resp.Rate.Remaining%1000 == 0 {
-				// Remaining requests are jumping over 1000
-				session.Log.Warn("Token %s has %d/%d calls remaining.", client.Token, resp.Rate.Remaining, resp.Rate.Limit)
+			if opt.Page == 0 {
+				session.Log.Warn("Token %s[..] has %d/%d calls remaining.", client.Token[:10], resp.Rate.Remaining, resp.Rate.Limit)
 			}
 
 			newEvents := make([]*github.Event, 0, len(events))
@@ -97,7 +96,7 @@ func GetGists(session *Session) {
 
 		if err != nil {
 			if _, ok := err.(*github.RateLimitError); ok {
-				session.Log.Warn("Token %s rate limited. Reset at %s", client.Token, resp.Rate.Reset)
+				session.Log.Warn("Token %s[..] rate limited. Reset at %s", client.Token[:10], resp.Rate.Reset)
 				client.RateLimitedUntil = resp.Rate.Reset.Time
 				break
 			}
@@ -144,7 +143,7 @@ func GetRepository(session *Session, id int64) (*github.Repository, error) {
 	}
 
 	if resp.Rate.Remaining <= 1 {
-		session.Log.Warn("Token %s rate limited. Reset at %s", client.Token, resp.Rate.Reset)
+		session.Log.Warn("Token %s[..] rate limited. Reset at %s", client.Token[:10], resp.Rate.Reset)
 		client.RateLimitedUntil = resp.Rate.Reset.Time
 	}
 
