@@ -23,7 +23,6 @@ func GetRepositories(session *Session) {
 	localCtx, cancel := context.WithCancel(session.Context)
 	defer cancel()
 	observedKeys := map[int64]bool{}
-
 	for c := time.Tick(sleep); ; {
 		opt := &github.ListOptions{PerPage: perPage}
 		client := session.GetClient()
