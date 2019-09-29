@@ -75,3 +75,13 @@ func GetMatchingFiles(dir string) []MatchFile {
 
 	return fileList
 }
+
+func IsMember(name string) bool {
+	for _, organization := range session.Config.Organizations {
+		if strings.Contains(strings.ToLower(name), strings.ToLower(organization)) {
+			return true
+		}
+	}
+
+	return false
+}
