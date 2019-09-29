@@ -20,6 +20,7 @@ type Options struct {
 	TempDirectory          *string
 	CsvPath                *string
 	SearchQuery            *string
+	CheckOwner             *bool
 }
 
 func ParseOptions() (*Options, error) {
@@ -34,6 +35,7 @@ func ParseOptions() (*Options, error) {
 		MinimumStars:           flag.Uint("minimum-stars", 0, "Only process repositories with this many stars. Default 0 will ignore star count"),
 		PathChecks:             flag.Bool("path-checks", true, "Set to false to disable checking of filepaths, i.e. just match regex patterns of file contents"),
 		ProcessGists:           flag.Bool("process-gists", true, "Will watch and process Gists. Set to false to disable."),
+		CheckOwner:             flag.Bool("check-owner", false, "Will check owner details before processing repo. Set to true to enable."),
 		TempDirectory:          flag.String("temp-directory", filepath.Join(os.TempDir(), Name), "Directory to process and store repositories/matches"),
 		CsvPath:                flag.String("csv-path", "", "CSV file path to log found secrets to. Leave blank to disable"),
 		SearchQuery:            flag.String("search-query", "", "Specify a search string to ignore signatures and filter on files containing this string (regex compatible)"),
