@@ -4,6 +4,7 @@ slack_webhook: ''
 blacklisted_extensions: [".exe", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".psd", ".xcf", ".zip", ".tar.gz", ".ttf", ".lock"]
 blacklisted_paths: ["node_modules{sep}", "vendor{sep}bundle", "vendor{sep}cache"] # use {sep} for the OS' path seperator (i.e. / or \)
 blacklisted_entropy_extensions: [".pem", "id_rsa", ".asc", ".ovpn", ".sqlite", ".sqlite3"] # additional extensions to skip entropy checks
+organizations: []
 signatures:
   - part:  'extension'
     match: '.pem'
