@@ -17,6 +17,7 @@ type Config struct {
 	BlacklistedPaths             []string          `yaml:"blacklisted_paths"`
 	BlacklistedEntropyExtensions []string          `yaml:"blacklisted_entropy_extensions"`
 	Signatures                   []ConfigSignature `yaml:"signatures"`
+	Organizations                []string          `yaml:"organizations`
 }
 
 type ConfigSignature struct {
