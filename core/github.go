@@ -2,6 +2,10 @@ package core
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/google/go-github/github"
@@ -147,4 +151,40 @@ func GetRepository(session *Session, id int64) (*github.Repository, error) {
 	}
 
 	return repo, nil
+}
+
+func GetUser(session *Session, id string) (*github.User, error) {
+	client := session.GetClient()
+	//println(id)
+	user, resp, err := client.Users.Get(session.Context, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Rate.Remaining <= 1 {
+		session.Log.Warn("Token %s[..] rate limited. Reset at %s", client.Token[:10], resp.Rate.Reset)
+		client.RateLimitedUntil = resp.Rate.Reset.Time
+	}
+
+	return user, nil
+}
+
+func GetGistOwner(gistUrl string) (string, error) {
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}}
+
+	resp, err := client.Get(gistUrl)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer resp.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyString := string(bodyBytes)
+	r := regexp.MustCompile(`.com\/(.+)?\/.*.git`)
+	res := r.FindStringSubmatch(bodyString)
+	gistOwner := fmt.Sprint(res[1])
+	return gistOwner, nil
 }
