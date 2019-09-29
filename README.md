@@ -36,6 +36,8 @@ Alternatively, you can forgo the signatures and use shhgit with a search query, 
 ### Options
 
 ```
+--check-owner
+        Will check owner details before processing repo. Set to true to enable.
 --clone-repository-timeout
         Maximum time it should take to clone a repository in seconds (default 10)
 --csv-path
@@ -76,6 +78,7 @@ slack_webhook: '' # url to your slack webhook. Found secrets will be sent here
 blacklisted_extensions: [] # list of extensions to ignore
 blacklisted_paths: [] # list of paths to ignore
 blacklisted_entropy_extensions: [] # additional extensions to ignore for entropy checks
+organizations: []
 signatures: # list of signatures to check
   - part: '' # either filename, extension, path or contents
     match: '' # simple text comparison (if no regex element)
