@@ -9,9 +9,41 @@ import (
 
 	"github.com/eth0izzle/shhgit/core"
 	"github.com/fatih/color"
+	"github.com/google/go-github/github"
 )
 
 var session = core.GetSession()
+
+func CheckOwner(repo *github.Repository) bool {
+	repoOwner := repo.GetOwner()
+	owner, err := core.GetUser(session, repoOwner.GetLogin())
+	ownerDetails := []string{owner.GetCompany(), owner.GetEmail(), owner.GetBlog(), owner.GetLogin(), owner.GetBio(), repo.GetName()}
+	if err != nil {
+		session.Log.Warn("Failed to retrieve owner details %d: %s", repo, err)
+		return false
+	}
+	ownerString := strings.Join(ownerDetails, " ")
+	if !core.IsMember(ownerString) {
+		return false
+	}
+	return true
+}
+
+func CheckOwnerGist(gistUrl string) bool {
+	gistOwner, err := core.GetGistOwner(gistUrl)
+	owner, err := core.GetUser(session, gistOwner)
+	ownerDetails := []string{owner.GetCompany(), owner.GetEmail(), owner.GetBlog(), owner.GetLogin(), owner.GetBio()}
+	if err != nil {
+		session.Log.Warn("Failed to retrieve owner details %d: %s", gistOwner, err)
+		return false
+	}
+	ownerString := strings.Join(ownerDetails, " ")
+	//print(ownerString)
+	if !core.IsMember(ownerString) {
+		return false
+	}
+	return true
+}
 
 func ProcessRepositories() {
 	threadNum := *session.Options.Threads
@@ -22,7 +54,11 @@ func ProcessRepositories() {
 			for {
 				repositoryId := <-session.Repositories
 				repo, err := core.GetRepository(session, repositoryId)
-
+				if *session.Options.CheckOwner {
+					if !CheckOwner(repo) {
+						break
+					}
+				}
 				if err != nil {
 					session.Log.Warn("Failed to retrieve repository %d: %s", repositoryId, err)
 					continue
@@ -46,7 +82,11 @@ func ProcessGists() {
 		go func(tid int) {
 			for {
 				gistUrl := <-session.Gists
-				processRepositoryOrGist(gistUrl)
+				if *session.Options.CheckOwner {
+					if CheckOwnerGist(gistUrl) {
+						processRepositoryOrGist(gistUrl)
+					}
+				}
 			}
 		}(i)
 	}
