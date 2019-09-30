@@ -1,4 +1,4 @@
-module github.com/jordanpotti/shhgit
+module github.com/eth0izzle/shhgit
 
 go 1.12.9
 
