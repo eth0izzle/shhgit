@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/eth0izzle/shhgit/core"
+	"github.com/jordanpotti/shhgit/core"
 	"github.com/fatih/color"
 	"github.com/google/go-github/github"
 )
