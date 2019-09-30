@@ -33,12 +33,11 @@ func CheckOwnerGist(gistUrl string) bool {
 	gistOwner, err := core.GetGistOwner(gistUrl)
 	owner, err := core.GetUser(session, gistOwner)
 	ownerDetails := []string{owner.GetCompany(), owner.GetEmail(), owner.GetBlog(), owner.GetLogin(), owner.GetBio()}
-	if err != nil {
-		session.Log.Warn("Failed to retrieve owner details %d: %s", gistOwner, err)
+	if err != nil || gistOwner == "err_getting_user" {
+		//session.Log.Warn("Failed to retrieve owner details %d: %s", gistOwner, err)
 		return false
 	}
 	ownerString := strings.Join(ownerDetails, " ")
-	//print(ownerString)
 	if !core.IsMember(ownerString) {
 		return false
 	}
