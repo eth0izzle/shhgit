@@ -169,7 +169,7 @@ func GetUser(session *Session, id string) (*github.User, error) {
 
 	return user, nil
 }
-
+//The Google GitHub module didn't have support for this, so we have to make a web request and use some regex magic here.
 func GetGistOwner(gistUrl string) (string, error) {
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
@@ -185,6 +185,9 @@ func GetGistOwner(gistUrl string) (string, error) {
 	bodyString := string(bodyBytes)
 	r := regexp.MustCompile(`.com\/(.+)?\/.*.git`)
 	res := r.FindStringSubmatch(bodyString)
-	gistOwner := fmt.Sprint(res[1])
-	return gistOwner, nil
+	if len(res) != 0 {
+		gistOwner := fmt.Sprint(res[1])
+		return gistOwner, nil
+	}
+	return "err_getting_user", err
 }
