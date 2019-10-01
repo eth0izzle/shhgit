@@ -58,7 +58,7 @@ func processRepositoryOrGist(url string) {
 		matchedAny bool = false
 	)
 
-	dir := core.GetTempDir(core.GetHash(string(url)))
+	dir := core.GetTempDir(core.GetHash(url))
 	_, err := core.CloneRepository(session, url, dir)
 
 	if err != nil {
