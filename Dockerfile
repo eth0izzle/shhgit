@@ -1,17 +1,15 @@
-FROM golang:1.13-alpine
+FROM golang:alpine AS builder
 
-WORKDIR /go/src/app
-ADD . src
+WORKDIR /go/src/
+ADD . .
 
-WORKDIR /go/src/app/src
-RUN ["go", "install"]
-RUN ["go", "build"]
+RUN go install && go build
 
-WORKDIR /go/src/app/
-RUN cp src/shhgit .
-RUN cp src/config.yaml .
-RUN rm -R src
+FROM alpine:latest AS runtime
+WORKDIR /app
+VOLUME /tmp/shhgit
 
-VOLUME ["/tmp/shhgit"]
-VOLUME ["/go/app/config.yaml"]
-CMD ["shhgit"]
+COPY --from=builder /go/src/shhgit .
+COPY --from=builder /go/src/config.yaml .
+
+CMD /app/shhgit
