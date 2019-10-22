@@ -5,11 +5,11 @@ ADD . .
 
 RUN go install && go build
 
-FROM scratch AS runtime
+FROM alpine:latest AS runtime
 WORKDIR /app
 VOLUME /tmp/shhgit
 
 COPY --from=builder /go/src/shhgit .
 COPY --from=builder /go/src/config.yaml .
 
-CMD /app/shhgit
+ENTRYPOINT [ "/app/shhgit" ]
