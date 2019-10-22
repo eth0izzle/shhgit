@@ -14,8 +14,8 @@ import (
 const (
 	FATAL     = 5
 	ERROR     = 4
-	WARN      = 3
-	IMPORTANT = 2
+	IMPORTANT = 3
+	WARN      = 2
 	INFO      = 1
 	DEBUG     = 0
 )
@@ -32,10 +32,15 @@ type Logger struct {
 	sync.Mutex
 
 	debug bool
+	silent bool
 }
 
 func (l *Logger) SetDebug(d bool) {
 	l.debug = d
+}
+
+func (l *Logger) SetSilent(d bool) {
+	l.silent = d
 }
 
 func (l *Logger) Log(level int, format string, args ...interface{}) {
@@ -43,6 +48,10 @@ func (l *Logger) Log(level int, format string, args ...interface{}) {
 	defer l.Unlock()
 
 	if level == DEBUG && !l.debug {
+		return
+	}
+
+	if l.silent && level < IMPORTANT {
 		return
 	}
 
