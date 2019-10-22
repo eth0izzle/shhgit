@@ -5,7 +5,7 @@ ADD . .
 
 RUN go install && go build
 
-FROM alpine:latest AS runtime
+FROM scratch AS runtime
 WORKDIR /app
 VOLUME /tmp/shhgit
 
