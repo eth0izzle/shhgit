@@ -27,7 +27,7 @@ You can use the [precompiled binaries](https://www.github.com/eth0izzle/shhgit/r
 
 ## Usage
 
-shhgit needs to access the public GitHub API so you will need to obtain and provide an access token. The API has a hard rate limit of 5,000 requests per hour per account, regardless what token is used. The more account-unique tokens you provide, the faster you can process the events. Follow [this guide](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line) to generate a token; it doesn't require any scopes or permissions. And then place it under `github_access_tokens` in `config.yaml`. **Note that it is against the GitHub terms to bypass their rate limits. Use multiple tokens at your own risk**.
+shhgit needs to access the public GitHub API so you will need to obtain and provide an access token. The API has a hard rate limit of 5,000 requests per hour per account, regardless what token is used. The more account-unique tokens you provide, the faster you can process the events. Follow [this guide](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) to generate a token; it doesn't require any scopes or permissions. And then place it under `github_access_tokens` in `config.yaml`. **Note that it is against the GitHub terms to bypass their rate limits. Use multiple tokens at your own risk**.
 
 Unlike other tools, you don't need to pass any targets with shhgit. Simply run `$ shhgit` to start watching GitHub commits and find secrets or sensitive files matching the included 120 signatures.
 
