@@ -21,8 +21,8 @@ type Config struct {
 
 type ConfigSignature struct {
 	Name     string `yaml:"name"`
-	Part     string `yaml:"part`
-	Match    string `yaml:"match,omitempty`
+	Part     string `yaml:"part"`
+	Match    string `yaml:"match,omitempty"`
 	Regex    string `yaml:"regex,omitempty"`
 	Verifier string `yaml:"verifier,omitempty"`
 }
