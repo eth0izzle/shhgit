@@ -48,6 +48,7 @@ func (s *Session) Start() {
 func (s *Session) InitLogger() {
 	s.Log = &Logger{}
 	s.Log.SetDebug(*s.Options.Debug)
+	s.Log.SetSilent(*s.Options.Silent)
 }
 
 func (s *Session) InitSignatures() {
