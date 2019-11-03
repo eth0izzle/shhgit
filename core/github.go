@@ -14,7 +14,6 @@ type GitHubClientWrapper struct {
 }
 
 const (
-	baseUrl = "https://www.github.com"
 	perPage = 300
 	sleep   = 30 * time.Second
 )
