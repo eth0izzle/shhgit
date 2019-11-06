@@ -140,6 +140,10 @@ func main() {
 		session.Log.Important("Search Query '%s' given. Only returning matching results.", *session.Options.SearchQuery)
 	}
 
+	if *session.Options.NoColor == true {
+		color.NoColor = true
+	}
+
 	go core.GetRepositories(session)
 	go ProcessRepositories()
 

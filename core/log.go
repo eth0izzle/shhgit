@@ -31,7 +31,7 @@ var LogColors = map[int]*color.Color{
 type Logger struct {
 	sync.Mutex
 
-	debug bool
+	debug  bool
 	silent bool
 }
 
@@ -65,6 +65,16 @@ func (l *Logger) Log(level int, format string, args ...interface{}) {
 		values := map[string]string{"text": fmt.Sprintf(format+"\n", args...)}
 		jsonValue, _ := json.Marshal(values)
 		http.Post(session.Config.SlackWebhook, "application/json", bytes.NewBuffer(jsonValue))
+	}
+
+	if level > INFO && session.Config.Telegram.Token != "" && session.Config.Telegram.ChatID != "" {
+		values := map[string]string{
+			"text":    fmt.Sprintf(format+"\n", args...),
+			"chat_id": session.Config.Telegram.ChatID,
+		}
+		jsonValue, _ := json.Marshal(values)
+		requestURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", session.Config.Telegram.Token)
+		http.Post(requestURL, "application/json", bytes.NewBuffer(jsonValue))
 	}
 
 	if level == FATAL {
