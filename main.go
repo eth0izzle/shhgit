@@ -54,8 +54,8 @@ func ProcessGists() {
 
 func processRepositoryOrGist(url string) {
 	var (
-		matches    []string
-		matchedAny bool = false
+		matches []string
+		//matchedAny bool = false
 	)
 
 	dir := core.GetTempDir(core.GetHash(url))
@@ -87,7 +87,7 @@ func processRepositoryOrGist(url string) {
 		} else {
 			for _, signature := range session.Signatures {
 				if matched, part := signature.Match(file); matched {
-					matchedAny = true
+					//matchedAny = true
 
 					if part == core.PartContents {
 						if matches = signature.GetContentsMatches(file); matches != nil {
@@ -123,14 +123,14 @@ func processRepositoryOrGist(url string) {
 			}
 		}
 
-		if !matchedAny {
-			os.Remove(file.Path)
-		}
+		//if !matchedAny {
+		os.Remove(file.Path)
+		//}
 	}
 
-	if !matchedAny {
-		os.RemoveAll(dir)
-	}
+	//if !matchedAny {
+	os.RemoveAll(dir)
+	//}
 }
 
 func main() {
