@@ -1,9 +1,12 @@
 package core
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
 	"math"
+	"mime/multipart"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -68,4 +71,30 @@ func GetEntropy(data string) (entropy float64) {
 	}
 
 	return entropy
+}
+
+func NewfileUploadRequest(uri string, params map[string]string, paramName string, file *MatchFile) (*http.Request, error) {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile(paramName, file.Filename)
+	if err != nil {
+		return nil, err
+	}
+
+	part.Write(file.Contents)
+
+	for key, val := range params {
+		_ = writer.WriteField(key, val)
+	}
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
+	request, err := http.NewRequest("POST", uri, body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("Content-Type", writer.FormDataContentType())
+	return request, nil
+
 }
