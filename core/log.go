@@ -69,16 +69,20 @@ func (l *Logger) Log(level int, format string, file *MatchFile, args ...interfac
 	}
 
 	if level > INFO && session.Config.Telegram.Token != "" && session.Config.Telegram.ChatID != "" {
-		if file != nil {
-			caption := fmt.Sprintf(format+"\n", args...)
+		caption := fmt.Sprintf(format+"\n", args...)
+		rcpt := session.Config.Telegram.ChatID
+		if level != IMPORTANT && session.Config.Telegram.AdminID != "" {
+			rcpt = session.Config.Telegram.AdminID
+		}
 
+		if file != nil {
 			if len(caption) > 1023 {
 				caption = caption[0:1023]
 			}
 
 			values := map[string]string{
 				"caption": caption,
-				"chat_id": session.Config.Telegram.ChatID,
+				"chat_id": rcpt,
 			}
 			requestURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendDocument", session.Config.Telegram.Token)
 			request, err := NewfileUploadRequest(requestURL, values, "document", file)
@@ -90,8 +94,8 @@ func (l *Logger) Log(level int, format string, file *MatchFile, args ...interfac
 			client.Do(request)
 		} else {
 			values := map[string]string{
-				"text":    fmt.Sprintf(format+"\n", args...),
-				"chat_id": session.Config.Telegram.ChatID,
+				"text":    caption,
+				"chat_id": rcpt,
 			}
 			jsonValue, _ := json.Marshal(values)
 			requestURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", session.Config.Telegram.Token)

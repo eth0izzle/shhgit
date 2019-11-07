@@ -21,8 +21,9 @@ type Config struct {
 }
 
 type TelegramConfig struct {
-	Token  string `yaml:"token,omitempty"`
-	ChatID string `yaml:"chat_id,omitempty"`
+	Token   string `yaml:"token,omitempty"`
+	ChatID  string `yaml:"chat_id,omitempty"`
+	AdminID string `yaml:"admin_id,omitempty"`
 }
 
 type ConfigSignature struct {
