@@ -124,7 +124,7 @@ func processRepositoryOrGist(url string) {
 									entropy := core.GetEntropy(scanner.Text())
 
 									if entropy >= *session.Options.EntropyThreshold {
-										session.Log.ImportantFile("#PotentialSecret\n\n`%s`\n%s", &file, url, color.GreenString(scanner.Text()))
+										session.Log.ImportantFile("#PotentialSecret\n\n%s\n`%s`", &file, url, color.GreenString(scanner.Text()))
 										session.WriteToCsv([]string{url, signature.Name(), relativeFileName, scanner.Text()})
 									}
 								}
