@@ -10,7 +10,9 @@ import (
 
 	"github.com/eth0izzle/shhgit/core"
 	"github.com/fatih/color"
+
 	//_ "net/http/pprof"
+	"github.com/iancoleman/strcase"
 )
 
 var session = core.GetSession()
@@ -26,7 +28,7 @@ func ProcessRepositories() {
 				repo, err := core.GetRepository(session, repositoryId)
 
 				if err != nil {
-					session.Log.Warn("Failed to retrieve repository %d: %s", repositoryId, err)
+					//session.Log.Warn("Failed to retrieve repository %d: %s", repositoryId, err)
 					continue
 				}
 
@@ -103,12 +105,12 @@ func processRepositoryOrGist(url string) {
 						if matches = signature.GetContentsMatches(file); matches != nil {
 							count := len(matches)
 							m := strings.Join(matches, ", ")
-							session.Log.ImportantFile("[%s] %d %s for %s in file %s: %s", &file, url, count, core.Pluralize(count, "match", "matches"), color.GreenString(signature.Name()), relativeFileName, color.YellowString(m))
+							session.Log.ImportantFile("#%s\n\n%s\n%d %s for %s: `%s`", &file, strcase.ToCamel(signature.Name()), url, count, core.Pluralize(count, "match", "matches"), color.GreenString(signature.Name()), color.YellowString(m))
 							session.WriteToCsv([]string{url, signature.Name(), relativeFileName, m})
 						}
 					} else {
 						if *session.Options.PathChecks {
-							session.Log.ImportantFile("[%s] Matching file %s for %s", &file, url, color.YellowString(relativeFileName), color.GreenString(signature.Name()))
+							session.Log.ImportantFile("#%s\n\n%s\n`%s`", &file, strcase.ToCamel(signature.Name()), url, color.GreenString(signature.Name()))
 							session.WriteToCsv([]string{url, signature.Name(), relativeFileName, ""})
 						}
 
@@ -122,7 +124,7 @@ func processRepositoryOrGist(url string) {
 									entropy := core.GetEntropy(scanner.Text())
 
 									if entropy >= *session.Options.EntropyThreshold {
-										session.Log.ImportantFile("[%s] Potential secret in %s = %s", &file, url, color.YellowString(relativeFileName), color.GreenString(scanner.Text()))
+										session.Log.ImportantFile("#PotentialSecret\n\n`%s`\n%s", &file, url, color.GreenString(scanner.Text()))
 										session.WriteToCsv([]string{url, signature.Name(), relativeFileName, scanner.Text()})
 									}
 								}

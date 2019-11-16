@@ -44,7 +44,7 @@ func GetRepositories(session *Session) {
 			}
 
 			if opt.Page == 0 {
-				session.Log.Warn("Token %s[..] has %d/%d calls remaining.", client.Token[:10], resp.Rate.Remaining, resp.Rate.Limit)
+				//session.Log.Warn("Token %s[..] has %d/%d calls remaining.", client.Token[:10], resp.Rate.Remaining, resp.Rate.Limit)
 			}
 
 			newEvents := make([]*github.Event, 0, len(events))

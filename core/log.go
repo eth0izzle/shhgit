@@ -68,7 +68,7 @@ func (l *Logger) Log(level int, format string, file *MatchFile, args ...interfac
 		http.Post(session.Config.SlackWebhook, "application/json", bytes.NewBuffer(jsonValue))
 	}
 
-	if level > INFO && session.Config.Telegram.Token != "" && session.Config.Telegram.ChatID != "" {
+	if session.Config.Telegram.Token != "" && session.Config.Telegram.ChatID != "" {
 		caption := fmt.Sprintf(format+"\n", args...)
 		rcpt := session.Config.Telegram.ChatID
 		if level != IMPORTANT && session.Config.Telegram.AdminID != "" {
@@ -81,8 +81,9 @@ func (l *Logger) Log(level int, format string, file *MatchFile, args ...interfac
 			}
 
 			values := map[string]string{
-				"caption": caption,
-				"chat_id": rcpt,
+				"caption":    caption,
+				"chat_id":    rcpt,
+				"parse_mode": "Markdown",
 			}
 			requestURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendDocument", session.Config.Telegram.Token)
 			request, err := NewfileUploadRequest(requestURL, values, "document", file)
@@ -94,8 +95,9 @@ func (l *Logger) Log(level int, format string, file *MatchFile, args ...interfac
 			client.Do(request)
 		} else {
 			values := map[string]string{
-				"text":    caption,
-				"chat_id": rcpt,
+				"text":       caption,
+				"chat_id":    rcpt,
+				"parse_mode": "Markdown",
 			}
 			jsonValue, _ := json.Marshal(values)
 			requestURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", session.Config.Telegram.Token)
