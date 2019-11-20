@@ -23,5 +23,5 @@ COPY --from=build \
 COPY --from=build \
 	/root/go/src/github.com/eth0izzle/shhgit/config.yaml \
 	./config.yaml
-#ENTRYPOINT [ "/usr/local/bin/shhgit" ]
-#CMD        [ ]
+ENTRYPOINT [ "/usr/local/bin/shhgit" ]
+CMD        [ ]
