@@ -16,6 +16,8 @@ RUN echo get build test install | xargs -n1 | xargs -n1 -I% -- go % .
 RUN sed -i.orig "s:^  - '':  - \${GITHUB_TOKEN}:" ./config.yaml
 
 FROM debian
+RUN apt update
+RUN apt install -y ca-certificates
 WORKDIR /data
 COPY --from=build \
 	/root/go/bin/shhgit \
