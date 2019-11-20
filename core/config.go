@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"errors"
 	"io/ioutil"
 	"os"
@@ -42,11 +41,9 @@ func ParseConfig() (*Config, error) {
 		return config, err
 	}
 
-	tokens := config.GitHubAccessTokens[:0]
-	for index, token := range config.GitHubAccessTokens {
-		tokens = append(tokens, os.ExpandEnv(token))
+	for i := 0; i < len(config.GitHubAccessTokens); i++ {
+		config.GitHubAccessTokens[i] = os.ExpandEnv(config.GitHubAccessTokens[i])
 	}
-	config.GitHubAccessTokens = tokens
 
 	if len(config.SlackWebhook) > 0 {
 		config.SlackWebhook = os.ExpandEnv(config.SlackWebhook)
