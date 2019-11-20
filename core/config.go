@@ -36,7 +36,9 @@ func ParseConfig() (*Config, error) {
 		return config, err
 	}
 
-	err = yaml.Unmarshal(data, config)
+	subst := []byte(os.ExpandEnv(string(data)))
+
+	err = yaml.Unmarshal(subst, config)
 	if err != nil {
 		return config, err
 	}
