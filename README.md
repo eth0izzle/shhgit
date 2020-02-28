@@ -17,6 +17,11 @@ I developed shhgit to raise awareness and bring to life the prevalence of this i
 <img src="https://www.darkport.co.uk/assets/img/shhgit-example.png" alt="shhgit" />
 <img src="https://www.darkport.co.uk/assets/img/shhgit-live-example.png" alt="shhgit live!" />
 
+## Run from Docker
+
+1. Edit config.yaml and insert your github credentials
+2. `$ docker run -v $(pwd)/config.yaml:/config.yaml:ro fnxpt/shhgit`
+
 ## Installation
 
 You can use the [precompiled binaries](https://www.github.com/eth0izzle/shhgit/releases) **or** build from source:
