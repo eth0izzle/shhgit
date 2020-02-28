@@ -41,6 +41,14 @@ func ParseConfig() (*Config, error) {
 		return config, err
 	}
 
+	for i := 0; i < len(config.GitHubAccessTokens); i++ {
+		config.GitHubAccessTokens[i] = os.ExpandEnv(config.GitHubAccessTokens[i])
+	}
+
+	if len(config.SlackWebhook) > 0 {
+		config.SlackWebhook = os.ExpandEnv(config.SlackWebhook)
+	}
+
 	return config, nil
 }
 
