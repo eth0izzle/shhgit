@@ -13,10 +13,17 @@ import (
 type Config struct {
 	GitHubAccessTokens           []string          `yaml:"github_access_tokens"`
 	SlackWebhook                 string            `yaml:"slack_webhook,omitempty"`
+	Telegram                     TelegramConfig    `yaml:"telegram_config,omitempty"`
 	BlacklistedExtensions        []string          `yaml:"blacklisted_extensions"`
 	BlacklistedPaths             []string          `yaml:"blacklisted_paths"`
 	BlacklistedEntropyExtensions []string          `yaml:"blacklisted_entropy_extensions"`
 	Signatures                   []ConfigSignature `yaml:"signatures"`
+}
+
+type TelegramConfig struct {
+	Token   string `yaml:"token,omitempty"`
+	ChatID  string `yaml:"chat_id,omitempty"`
+	AdminID string `yaml:"admin_id,omitempty"`
 }
 
 type ConfigSignature struct {

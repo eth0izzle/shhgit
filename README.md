@@ -78,6 +78,9 @@ github_access_tokens: # provide at least one token
   - 'token one'
   - 'token two'
 slack_webhook: '' # url to your slack webhook. Found secrets will be sent here
+telegram_config:
+  token: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' # Bot token
+  chat_id: "-1001027884121" # chat id
 blacklisted_extensions: [] # list of extensions to ignore
 blacklisted_paths: [] # list of paths to ignore
 blacklisted_entropy_extensions: [] # additional extensions to ignore for entropy checks

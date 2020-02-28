@@ -4,11 +4,15 @@ import (
 	"bufio"
 	"bytes"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/eth0izzle/shhgit/core"
 	"github.com/fatih/color"
+
+	//_ "net/http/pprof"
+	"github.com/iancoleman/strcase"
 )
 
 var session = core.GetSession()
@@ -24,7 +28,7 @@ func ProcessRepositories() {
 				repo, err := core.GetRepository(session, repositoryId)
 
 				if err != nil {
-					session.Log.Warn("Failed to retrieve repository %d: %s", repositoryId, err)
+					//session.Log.Warn("Failed to retrieve repository %d: %s", repositoryId, err)
 					continue
 				}
 
@@ -54,8 +58,8 @@ func ProcessGists() {
 
 func processRepositoryOrGist(url string) {
 	var (
-		matches    []string
-		matchedAny bool = false
+		matches []string
+		//matchedAny bool = false
 	)
 
 	dir := core.GetTempDir(core.GetHash(url))
@@ -69,7 +73,16 @@ func processRepositoryOrGist(url string) {
 
 	session.Log.Debug("[%s] Cloning in to %s", url, strings.Replace(dir, *session.Options.TempDirectory, "", -1))
 
-	for _, file := range core.GetMatchingFiles(dir) {
+	maxFileSize := *session.Options.MaximumFileSize * 1024
+	defer os.RemoveAll(dir)
+
+	filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+		if err != nil || f.IsDir() || uint(f.Size()) > maxFileSize || core.IsSkippableFile(path) {
+			return nil
+		}
+
+		file := core.NewMatchFile(path)
+		defer os.Remove(file.Path)
 		relativeFileName := strings.Replace(file.Path, *session.Options.TempDirectory, "", -1)
 
 		if *session.Options.SearchQuery != "" {
@@ -81,24 +94,23 @@ func processRepositoryOrGist(url string) {
 			if matches != nil {
 				count := len(matches)
 				m := strings.Join(matches, ", ")
-				session.Log.Important("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString("Search Query"), relativeFileName, color.YellowString(m))
+				session.Log.ImportantFile("[%s] %d %s for %s in file %s: %s", &file, url, count, core.Pluralize(count, "match", "matches"), color.GreenString("Search Query"), relativeFileName, color.YellowString(m))
 				session.WriteToCsv([]string{url, "Search Query", relativeFileName, m})
 			}
 		} else {
 			for _, signature := range session.Signatures {
 				if matched, part := signature.Match(file); matched {
-					matchedAny = true
 
 					if part == core.PartContents {
 						if matches = signature.GetContentsMatches(file); matches != nil {
 							count := len(matches)
 							m := strings.Join(matches, ", ")
-							session.Log.Important("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString(signature.Name()), relativeFileName, color.YellowString(m))
+							session.Log.ImportantFile("#%s\n\n%s\n%d %s for %s: `%s`", &file, strcase.ToCamel(signature.Name()), url, count, core.Pluralize(count, "match", "matches"), color.GreenString(signature.Name()), color.YellowString(m))
 							session.WriteToCsv([]string{url, signature.Name(), relativeFileName, m})
 						}
 					} else {
 						if *session.Options.PathChecks {
-							session.Log.Important("[%s] Matching file %s for %s", url, color.YellowString(relativeFileName), color.GreenString(signature.Name()))
+							session.Log.ImportantFile("#%s\n\n%s\n`%s`", &file, strcase.ToCamel(signature.Name()), url, color.GreenString(signature.Name()))
 							session.WriteToCsv([]string{url, signature.Name(), relativeFileName, ""})
 						}
 
@@ -112,7 +124,7 @@ func processRepositoryOrGist(url string) {
 									entropy := core.GetEntropy(scanner.Text())
 
 									if entropy >= *session.Options.EntropyThreshold {
-										session.Log.Important("[%s] Potential secret in %s = %s", url, color.YellowString(relativeFileName), color.GreenString(scanner.Text()))
+										session.Log.ImportantFile("#PotentialSecret\n\n%s\n`%s`", &file, url, color.GreenString(scanner.Text()))
 										session.WriteToCsv([]string{url, signature.Name(), relativeFileName, scanner.Text()})
 									}
 								}
@@ -123,14 +135,8 @@ func processRepositoryOrGist(url string) {
 			}
 		}
 
-		if !matchedAny {
-			os.Remove(file.Path)
-		}
-	}
-
-	if !matchedAny {
-		os.RemoveAll(dir)
-	}
+		return nil
+	})
 }
 
 func main() {
@@ -138,6 +144,10 @@ func main() {
 
 	if *session.Options.SearchQuery != "" {
 		session.Log.Important("Search Query '%s' given. Only returning matching results.", *session.Options.SearchQuery)
+	}
+
+	if *session.Options.NoColor == true {
+		color.NoColor = true
 	}
 
 	go core.GetRepositories(session)
@@ -149,5 +159,6 @@ func main() {
 	}
 
 	session.Log.Info("Press Ctrl+C to stop and exit.\n")
+	//log.Fatal(http.ListenAndServe(":8080", nil))
 	select {}
 }
