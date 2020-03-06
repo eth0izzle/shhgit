@@ -76,7 +76,7 @@ func (s *Session) InitGitHubClients() {
 	}
 
 	if len(s.Clients) < 1 {
-		s.Log.Fatal("No valid GitHub tokens provided. Quitting!")
+		s.Log.Error("No valid GitHub tokens provided. You need to provide at least one GitHub Access Token. See https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line")
 	}
 }
 
