@@ -88,6 +88,10 @@ signatures: # list of signatures to check
     name: '' # name of the signature
 ```
 
+Note that some configuration can be also overwritten with environment varibles. There are:
+- `github_access_tokens`, environment variable `GITHUB_ACCESS_TOKENS`
+- `slack_webhook`, environment variable `SLACK_WEBHOOK`
+
 #### Signatures
 
 shhgit comes with 120 signatures. You can remove or add more by editing `config.yaml`.
