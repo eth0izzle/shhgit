@@ -38,6 +38,20 @@ Unlike other tools, you don't need to pass any targets with shhgit. Simply run `
 
 Alternatively, you can forgo the signatures and use shhgit with a search query, e.g. to find all AWS keys you could use `shhgit --search-query AWS_ACCESS_KEY_ID=AKIA`
 
+### Running locally
+
+There's also possibility to run shhgit locally, and include it also to CI pipeline's to scan e.g. private repos or repos in some other service than Github.
+
+#### With Docker
+
+1. Build container: `docker image build -t shhgit .`
+2. Scan local directory with docker container (Linux/Mac): `docker container run --rm -it -v $(pwd):$(pwd) -w $(pwd) shhgit --local $(pwd)`
+
+#### Directly with compiled shhgit
+
+1. Build application: `GO111MODULE=on CGO_ENABLED=0 go build -v -i -o shhgit` (note that build goes to same directory as `config.yaml`, so there's no need to define path for configuration)
+2. Scan local directory with compiled app: `./shhgit --local <absolute path to directory that should be scanned recursively>`
+
 ### Options
 
 ```
