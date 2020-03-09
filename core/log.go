@@ -31,7 +31,7 @@ var LogColors = map[int]*color.Color{
 type Logger struct {
 	sync.Mutex
 
-	debug bool
+	debug  bool
 	silent bool
 }
 
