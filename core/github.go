@@ -43,7 +43,7 @@ func GetRepositories(session *Session) {
 				GetSession().Log.Important("Error getting GitHub events... trying again", err)
 			}
 
-			if opt.Page == 0 {
+			if opt.Page == 0 && resp.Rate.Limit > 0 {
 				session.Log.Warn("Token %s[..] has %d/%d calls remaining.", client.Token[:10], resp.Rate.Remaining, resp.Rate.Limit)
 			}
 
@@ -137,10 +137,11 @@ func GetRepository(session *Session, id int64) (*github.Repository, error) {
 	repo, resp, err := client.Repositories.GetByID(session.Context, id)
 
 	if err != nil {
+		session.Log.Warn("Got error %s", err)
 		return nil, err
 	}
 
-	if resp.Rate.Remaining <= 1 {
+	if resp.Rate.Remaining <= 1 && resp.Rate.Limit > 0 {
 		session.Log.Warn("Token %s[..] rate limited. Reset at %s", client.Token[:10], resp.Rate.Reset)
 		client.RateLimitedUntil = resp.Rate.Reset.Time
 	}
