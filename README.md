@@ -77,6 +77,7 @@ The `config.yaml` file has 6 elements. A [default is provided](https://github.co
 github_access_tokens: # provide at least one token
   - 'token one'
   - 'token two'
+github_enterprise_url: '' # url to your github enterprise (optional)
 slack_webhook: '' # url to your slack webhook. Found secrets will be sent here
 blacklisted_extensions: [] # list of extensions to ignore
 blacklisted_paths: [] # list of paths to ignore

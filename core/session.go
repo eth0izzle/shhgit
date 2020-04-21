@@ -5,8 +5,10 @@ import (
 	"encoding/csv"
 	"fmt"
 	"math/rand"
+	"net/url"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -61,6 +63,22 @@ func (s *Session) InitGitHubClients() {
 		tc := oauth2.NewClient(s.Context, ts)
 
 		client := github.NewClient(tc)
+		enterpriseUrl := s.Config.GitHubEnterpriseUrl
+
+		if len(enterpriseUrl) > 0 {
+			baseEndpoint, err := url.Parse(enterpriseUrl)
+
+			if err != nil {
+				s.Log.Warn("Failed to parse GitHubEnterpriseUrl %s[..]: %s", enterpriseUrl, err)
+				return
+			}
+
+			if !strings.HasSuffix(baseEndpoint.Path, "/api/v3/") {
+				baseEndpoint.Path += "api/v3/"
+			}
+
+			client.BaseURL = baseEndpoint
+		}
 
 		client.UserAgent = fmt.Sprintf("%s v%s", Name, Version)
 		_, _, err := client.Users.Get(s.Context, "")
