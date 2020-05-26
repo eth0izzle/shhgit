@@ -1,7 +1,5 @@
 module github.com/eth0izzle/shhgit
 
-go 1.12.9
-
 require (
 	github.com/fatih/color v1.7.0
 	github.com/google/go-github v17.0.0+incompatible
