@@ -91,7 +91,7 @@ The `config.yaml` file has 6 elements. A [default is provided](https://github.co
 github_access_tokens: # provide at least one token
   - 'token one'
   - 'token two'
-slack_webhook: '' # url to your slack webhook. Found secrets will be sent here
+webhook: '' # URL to a POST webhook. Sends JSON `{"text": "..."}`. Found secrets will be sent here
 blacklisted_extensions: [] # list of extensions to ignore
 blacklisted_paths: [] # list of paths to ignore
 blacklisted_entropy_extensions: [] # additional extensions to ignore for entropy checks
