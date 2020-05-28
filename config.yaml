@@ -335,6 +335,9 @@ signatures:
     regex: 'SK[0-9a-fA-F]{32}'
     name: 'Twilo API Key'
   - part:  'contents'
+    regex: 'SG\.[0-9A-Za-z\-_]{22}\.[0-9A-Za-z\-_]{43}'
+    name: 'SendGrid API Key'
+  - part:  'contents'
     regex: 'key-[0-9a-zA-Z]{32}'
     name: 'MailGun API Key'
   - part:  'contents'
@@ -362,7 +365,7 @@ signatures:
     regex: "(?i)hockey.{0,50}(\\\"|'|`)?[0-9a-f]{32}(\\\"|'|`)?"
     name: 'HockeyApp'
   - part: 'contents'
-    regex: '([\w+]{1,24})(://)([^$<]{1})([^\s";]{1,}):([^$<]{1})([^\s";]{1,})@[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,24}([^\s]+)'
+    regex: '([\w+]{1,24})(://)([^$<]{1})([^\s";]{1,}):([^$<]{1})([^\s";/]{1,})@[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,24}([^\s]+)'
     name: 'Username and password in URI'
   - part: 'contents'
     regex: 'oy2[a-z0-9]{43}'
