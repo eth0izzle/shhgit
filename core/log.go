@@ -1,12 +1,11 @@
 package core
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/fatih/color"
@@ -64,9 +63,8 @@ func (l *Logger) Log(level int, format string, args ...interface{}) {
 
 	if level > WARN && session.Config.Webhook != "" {
 		text := colorStrip(fmt.Sprintf(format, args...))
-		values := map[string]string{"text": text}
-		jsonValue, _ := json.Marshal(values)
-		http.Post(session.Config.Webhook, "application/json", bytes.NewBuffer(jsonValue))
+		payload := fmt.Sprintf(session.Config.WebhookPayload, text)
+		http.Post(session.Config.Webhook, "application/json", strings.NewReader(payload))
 	}
 
 	if level == FATAL {

@@ -85,13 +85,14 @@ There's also possibility to run shhgit locally, and include it also to CI pipeli
 
 ### Config
 
-The `config.yaml` file has 6 elements. A [default is provided](https://github.com/eth0izzle/shhgit/blob/master/config.yaml).
+The `config.yaml` file has 7 elements. A [default is provided](https://github.com/eth0izzle/shhgit/blob/master/config.yaml).
 
 ```
 github_access_tokens: # provide at least one token
   - 'token one'
   - 'token two'
-webhook: '' # URL to a POST webhook. Sends JSON `{"text": "..."}`. Found secrets will be sent here
+webhook: '' # URL to a POST webhook.
+webhook_payload: '' # Payload to POST to the webhook URL
 blacklisted_extensions: [] # list of extensions to ignore
 blacklisted_paths: [] # list of paths to ignore
 blacklisted_entropy_extensions: [] # additional extensions to ignore for entropy checks

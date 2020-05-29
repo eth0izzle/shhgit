@@ -1,6 +1,14 @@
 github_access_tokens:
   - ''
-webhook: '' # POSTs JSON `{"text": ...}` to URL. MatterMost and Slack, maybe more.
+webhook: '' # URL to which the payload is POSTed
+
+# This default payload will work for Slack and MatterMost.
+# Consult your webhook API for additional configurations.
+webhook_payload: |
+  {
+    "text": "%s"
+  }
+
 blacklisted_extensions: [".exe", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".psd", ".xcf", ".zip", ".tar.gz", ".ttf", ".lock"]
 blacklisted_paths: ["node_modules{sep}", "vendor{sep}bundle", "vendor{sep}cache"] # use {sep} for the OS' path seperator (i.e. / or \)
 blacklisted_entropy_extensions: [".pem", "id_rsa", ".asc", ".ovpn", ".sqlite", ".sqlite3"] # additional extensions to skip entropy checks
