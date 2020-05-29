@@ -42,6 +42,8 @@ Alternatively, you can forgo the signatures and use shhgit with a search query, 
 
 There's also possibility to run shhgit locally, and include it also to CI pipeline's to scan e.g. private repos or repos in some other service than Github.
 
+Local running is enabled with flag `--local`. It value should be directory to scan (scan is made recursively).
+
 #### With Docker
 
 1. Build container: `docker image build -t shhgit .`
@@ -49,7 +51,7 @@ There's also possibility to run shhgit locally, and include it also to CI pipeli
 
 #### Directly with compiled shhgit
 
-1. Build application: `GO111MODULE=on CGO_ENABLED=0 go build -v -i -o shhgit` (note that build goes to same directory as `config.yaml`, so there's no need to define path for configuration)
+1. Build application: `GO111MODULE=on CGO_ENABLED=0 go build -v -i -o shhgit` (note that build goes to same directory as `config.yaml`, so there's no need to define path for configuration with `--config-path` flag)
 2. Scan local directory with compiled app: `./shhgit --local <absolute path to directory that should be scanned recursively>`
 
 ### Options
@@ -57,12 +59,16 @@ There's also possibility to run shhgit locally, and include it also to CI pipeli
 ```
 --clone-repository-timeout
         Maximum time it should take to clone a repository in seconds (default 10)
+--config-path
+        Searches for config.yaml from given directory. If not set, tries to find if from shhgit binary's and current directory
 --csv-path
         Specify a path if you want to write found secrets to a CSV. Leave blank to disable
 --debug
         Print debugging information
 --entropy-threshold
         Finds high entropy strings in files. Higher threshold = more secret secrets, lower threshold = more false positives. Set to 0 to disable entropy checks (default 5.0)
+--local
+        Specify local directory (absolute path) which to scan. Scans only given directory recursively. No need to have Github tokens with local run.
 --maximum-file-size
         Maximum file size to process in KB (default 512)
 --maximum-repository-size
