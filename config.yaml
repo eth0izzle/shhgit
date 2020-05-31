@@ -2,6 +2,9 @@ github_access_tokens:
   - ''
 webhook: '' # URL to which the payload is POSTed
 
+logstash: '' # IP Address for Logstash Instance (UDP)
+logstash_port: '' # Listen Packet Port
+
 # This default payload will work for Slack and MatterMost.
 # Consult your webhook API for additional configurations.
 webhook_payload: |

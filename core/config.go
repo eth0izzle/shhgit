@@ -15,6 +15,8 @@ type Config struct {
 	GitHubAccessTokens           []string          `yaml:"github_access_tokens"`
 	Webhook                      string            `yaml:"webhook,omitempty"`
 	WebhookPayload               string            `yaml:"webhook_payload,omitempty"`
+	Logstash                     string            `yaml:"logstash,omitempty"`
+	LogstashPort	             string            `yaml:"logstash_port,omitempty"`
 	BlacklistedExtensions        []string          `yaml:"blacklisted_extensions"`
 	BlacklistedPaths             []string          `yaml:"blacklisted_paths"`
 	BlacklistedEntropyExtensions []string          `yaml:"blacklisted_entropy_extensions"`
@@ -71,6 +73,10 @@ func ParseConfig(options *Options) (*Config, error) {
 
 	if len(config.Webhook) > 0 {
 		config.Webhook = os.ExpandEnv(config.Webhook)
+	}
+	
+	if len(config.Logstash) > 0 {
+		config.Logstash = os.ExpandEnv(config.Logstash)
 	}
 
 	return config, nil

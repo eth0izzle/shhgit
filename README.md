@@ -99,6 +99,8 @@ github_access_tokens: # provide at least one token
   - 'token two'
 webhook: '' # URL to a POST webhook.
 webhook_payload: '' # Payload to POST to the webhook URL
+logstash: '' # IP Address for Logstash Instance (UDP)
+logstash_port: '' # Listen Packet Port
 blacklisted_extensions: [] # list of extensions to ignore
 blacklisted_paths: [] # list of paths to ignore
 blacklisted_entropy_extensions: [] # additional extensions to ignore for entropy checks
