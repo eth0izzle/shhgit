@@ -40,7 +40,7 @@ func GetRepositories(session *Session) {
 					GetSession().Log.Fatal("GitHub API abused detected. Quitting...")
 				}
 
-				GetSession().Log.Important("Error getting GitHub events... trying again", err)
+				GetSession().Log.Warn("Error getting GitHub events... trying again", err)
 			}
 
 			if opt.Page == 0 && resp.Rate.Limit > 0 {

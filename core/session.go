@@ -58,9 +58,10 @@ func (s *Session) InitSignatures() {
 }
 
 func (s *Session) InitGitHubClients() {
-	for _, token := range s.Config.GitHubAccessTokens {
-		ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-		tc := oauth2.NewClient(s.Context, ts)
+	if !s.Options.LocalRun {
+		for _, token := range s.Config.GitHubAccessTokens {
+			ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+			tc := oauth2.NewClient(s.Context, ts)
 
 		client := github.NewClient(tc)
 		enterpriseUrl := s.Config.GitHubEnterpriseUrl
@@ -80,21 +81,22 @@ func (s *Session) InitGitHubClients() {
 			client.BaseURL = baseEndpoint
 		}
 
-		client.UserAgent = fmt.Sprintf("%s v%s", Name, Version)
-		_, _, err := client.Users.Get(s.Context, "")
+			client.UserAgent = fmt.Sprintf("%s v%s", Name, Version)
+			_, _, err := client.Users.Get(s.Context, "")
 
-		if err != nil {
-			if _, ok := err.(*github.ErrorResponse); ok {
-				s.Log.Warn("Failed to validate token %s[..]: %s", token[:10], err)
-				continue
+			if err != nil {
+				if _, ok := err.(*github.ErrorResponse); ok {
+					s.Log.Warn("Failed to validate token %s[..]: %s", token[:10], err)
+					continue
+				}
 			}
+
+			s.Clients = append(s.Clients, &GitHubClientWrapper{client, token, time.Now().Add(-1 * time.Second)})
 		}
 
-		s.Clients = append(s.Clients, &GitHubClientWrapper{client, token, time.Now().Add(-1 * time.Second)})
-	}
-
-	if len(s.Clients) < 1 {
-		s.Log.Fatal("No valid GitHub tokens provided. Quitting!")
+		if len(s.Clients) < 1 {
+			s.Log.Fatal("No valid GitHub tokens provided. Quitting!")
+		}
 	}
 }
 
@@ -167,7 +169,7 @@ func GetSession() *Session {
 			os.Exit(1)
 		}
 
-		if session.Config, err = ParseConfig(); err != nil {
+		if session.Config, err = ParseConfig(session.Options); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}

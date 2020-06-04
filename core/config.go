@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -13,7 +14,8 @@ import (
 type Config struct {
 	GitHubAccessTokens           []string          `yaml:"github_access_tokens"`
 	GitHubEnterpriseUrl          string            `yaml:"github_enterprise_url"`
-	SlackWebhook                 string            `yaml:"slack_webhook,omitempty"`
+	Webhook                      string            `yaml:"webhook,omitempty"`
+	WebhookPayload               string            `yaml:"webhook_payload,omitempty"`
 	BlacklistedExtensions        []string          `yaml:"blacklisted_extensions"`
 	BlacklistedPaths             []string          `yaml:"blacklisted_paths"`
 	BlacklistedEntropyExtensions []string          `yaml:"blacklisted_entropy_extensions"`
@@ -28,13 +30,31 @@ type ConfigSignature struct {
 	Verifier string `yaml:"verifier,omitempty"`
 }
 
-func ParseConfig() (*Config, error) {
+func ParseConfig(options *Options) (*Config, error) {
 	config := &Config{}
+	var (
+		data []byte
+		err  error
+	)
 
-	dir, _ := os.Getwd()
-	data, err := ioutil.ReadFile(path.Join(dir, "config.yaml"))
-	if err != nil {
-		return config, err
+	if len(*options.ConfigPath) > 0 {
+		data, err = ioutil.ReadFile(path.Join(*options.ConfigPath, "config.yaml"))
+		if err != nil {
+			return config, err
+		}
+	} else {
+		// Trying to first find the configuration next to executable
+		// Helps e.g. with Drone where workdir is different than shhgit dir
+		ex, err := os.Executable()
+		dir := filepath.Dir(ex)
+		data, err = ioutil.ReadFile(path.Join(dir, "config.yaml"))
+		if err != nil {
+			dir, _ = os.Getwd()
+			data, err = ioutil.ReadFile(path.Join(dir, "config.yaml"))
+			if err != nil {
+				return config, err
+			}
+		}
 	}
 
 	err = yaml.Unmarshal(data, config)
@@ -42,12 +62,16 @@ func ParseConfig() (*Config, error) {
 		return config, err
 	}
 
+	if !options.LocalRun && (len(config.GitHubAccessTokens) < 1 || strings.TrimSpace(strings.Join(config.GitHubAccessTokens, "")) == "") {
+		return config, errors.New("You need to provide at least one GitHub Access Token. See https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line")
+	}
+
 	for i := 0; i < len(config.GitHubAccessTokens); i++ {
 		config.GitHubAccessTokens[i] = os.ExpandEnv(config.GitHubAccessTokens[i])
 	}
 
-	if len(config.SlackWebhook) > 0 {
-		config.SlackWebhook = os.ExpandEnv(config.SlackWebhook)
+	if len(config.Webhook) > 0 {
+		config.Webhook = os.ExpandEnv(config.Webhook)
 	}
 
 	return config, nil
@@ -56,14 +80,11 @@ func ParseConfig() (*Config, error) {
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = Config{}
 	type plain Config
+
 	err := unmarshal((*plain)(c))
 
 	if err != nil {
 		return err
-	}
-
-	if len(c.GitHubAccessTokens) < 1 || strings.TrimSpace(strings.Join(c.GitHubAccessTokens, "")) == "" {
-		return errors.New("You need to provide at least one GitHub Access Token. See https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line")
 	}
 
 	return nil

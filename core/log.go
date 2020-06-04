@@ -1,11 +1,11 @@
 package core
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/fatih/color"
@@ -61,10 +61,10 @@ func (l *Logger) Log(level int, format string, args ...interface{}) {
 		fmt.Printf(format+"\n", args...)
 	}
 
-	if level > INFO && session.Config.SlackWebhook != "" {
-		values := map[string]string{"text": fmt.Sprintf(format+"\n", args...)}
-		jsonValue, _ := json.Marshal(values)
-		http.Post(session.Config.SlackWebhook, "application/json", bytes.NewBuffer(jsonValue))
+	if level > WARN && session.Config.Webhook != "" {
+		text := colorStrip(fmt.Sprintf(format, args...))
+		payload := fmt.Sprintf(session.Config.WebhookPayload, text)
+		http.Post(session.Config.Webhook, "application/json", strings.NewReader(payload))
 	}
 
 	if level == FATAL {
@@ -94,4 +94,10 @@ func (l *Logger) Info(format string, args ...interface{}) {
 
 func (l *Logger) Debug(format string, args ...interface{}) {
 	l.Log(DEBUG, format, args...)
+}
+
+func colorStrip(str string) string {
+	ansi := "[\u001B\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))"
+	re := regexp.MustCompile(ansi)
+	return re.ReplaceAllString(str, "")
 }

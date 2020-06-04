@@ -54,7 +54,6 @@ func ProcessGists() {
 
 func processRepositoryOrGist(url string) {
 	var (
-		matches    []string
 		matchedAny bool = false
 	)
 
@@ -68,9 +67,23 @@ func processRepositoryOrGist(url string) {
 	}
 
 	session.Log.Debug("[%s] Cloning in to %s", url, strings.Replace(dir, *session.Options.TempDirectory, "", -1))
+	matchedAny = checkSignatures(dir, url)
+	if !matchedAny {
+		os.RemoveAll(dir)
+	}
+}
 
+func checkSignatures(dir string, url string) (matchedAny bool) {
 	for _, file := range core.GetMatchingFiles(dir) {
-		relativeFileName := strings.Replace(file.Path, *session.Options.TempDirectory, "", -1)
+		var (
+			matches          []string
+			relativeFileName string
+		)
+		if strings.Contains(dir, *session.Options.TempDirectory) {
+			relativeFileName = strings.Replace(file.Path, *session.Options.TempDirectory, "", -1)
+		} else {
+			relativeFileName = strings.Replace(file.Path, dir, "", -1)
+		}
 
 		if *session.Options.SearchQuery != "" {
 			queryRegex := regexp.MustCompile(*session.Options.SearchQuery)
@@ -127,27 +140,33 @@ func processRepositoryOrGist(url string) {
 			os.Remove(file.Path)
 		}
 	}
-
-	if !matchedAny {
-		os.RemoveAll(dir)
-	}
+	return
 }
 
 func main() {
-	session.Log.Info("%s v%s started. Loaded %d signatures. Using %d GitHub tokens and %d threads. Work dir: %s", core.Name, core.Version, len(session.Signatures), len(session.Clients), *session.Options.Threads, *session.Options.TempDirectory)
+	if session.Options.LocalRun {
+		session.Log.Info("Scanning local dir %s with %s v%s. Loaded %d signatures.", *session.Options.Local, core.Name, core.Version, len(session.Signatures))
+		rc := 0
+		if checkSignatures(*session.Options.Local, *session.Options.Local) {
+			rc = 1
+		}
+		os.Exit(rc)
+	} else {
+		session.Log.Info("%s v%s started. Loaded %d signatures. Using %d GitHub tokens and %d threads. Work dir: %s", core.Name, core.Version, len(session.Signatures), len(session.Clients), *session.Options.Threads, *session.Options.TempDirectory)
 
-	if *session.Options.SearchQuery != "" {
-		session.Log.Important("Search Query '%s' given. Only returning matching results.", *session.Options.SearchQuery)
+		if *session.Options.SearchQuery != "" {
+			session.Log.Important("Search Query '%s' given. Only returning matching results.", *session.Options.SearchQuery)
+		}
+
+		go core.GetRepositories(session)
+		go ProcessRepositories()
+
+		if *session.Options.ProcessGists {
+			go core.GetGists(session)
+			go ProcessGists()
+		}
+
+		session.Log.Info("Press Ctrl+C to stop and exit.\n")
+		select {}
 	}
-
-	go core.GetRepositories(session)
-	go ProcessRepositories()
-
-	if *session.Options.ProcessGists {
-		go core.GetGists(session)
-		go ProcessGists()
-	}
-
-	session.Log.Info("Press Ctrl+C to stop and exit.\n")
-	select {}
 }
