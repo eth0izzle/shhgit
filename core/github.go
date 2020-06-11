@@ -103,7 +103,7 @@ func GetGists(session *Session) {
 				GetSession().Log.Fatal("GitHub API abused detected. Quitting...")
 			}
 
-			GetSession().Log.Important("Error getting GitHub Gists... trying again", err)
+			GetSession().Log.Warn("Error getting GitHub Gists... trying again", err)
 		}
 
 		newGists := make([]*github.Gist, 0, len(gists))
