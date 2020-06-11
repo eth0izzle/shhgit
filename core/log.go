@@ -72,16 +72,10 @@ func (l *Logger) Log(level int, format string, args ...interface{}) {
 		text := colorStrip(fmt.Sprintf(format, args...))
 		payload := fmt.Sprintf(session.Config.Logstash, text)
   		pc, err := net.ListenPacket("udp4", ":" + session.Config.LogstashPort)
-  		if err != nil {
-    		panic(err)
-  		}
   		defer pc.Close()
 
-  		addr,err := net.ResolveUDPAddr("udp4", session.Config.Logstash)
-  		if err != nil {
-    		panic(err)
-  		}
-
+  		addr, err := net.ResolveUDPAddr("udp4", session.Config.Logstash)
+  		
   		pc.WriteTo([]byte(payload), addr)	
 	}
 	
