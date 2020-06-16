@@ -377,3 +377,6 @@ signatures:
   - part: 'contents'
     regex: 'oy2[a-z0-9]{43}'
     name: 'NuGet API Key'
+  - part:  'contents'
+    regex: 'hawk\.[0-9A-Za-z\-_]{20}\.[0-9A-Za-z\-_]{20}'
+    name: 'StackHawk API Key'
