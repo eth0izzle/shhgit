@@ -1,4 +1,4 @@
-FROM golang:alpine AS builder
+FROM docker.artifactory.michelin.com/golang:alpine AS builder
 
 WORKDIR /go/src
 ADD . .
@@ -10,5 +10,6 @@ VOLUME /tmp/shhgit
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /shhgit .
+ADD config.yaml .
 
 ENTRYPOINT [ "/shhgit" ]
