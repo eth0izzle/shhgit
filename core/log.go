@@ -70,16 +70,16 @@ func (l *Logger) Log(level int, format string, args ...interface{}) {
 	
 	if session.Config.Logstash != "" {
 		text := colorStrip(fmt.Sprintf(format, args...))
-		payload := fmt.Sprintf(session.Config.Logstash, text)
+		payload := fmt.Sprintf(session.Config.Logstash, text)				
   		pc, err := net.ListenPacket("udp4", ":" + session.Config.LogstashPort)
   		if err != nil {
-    		l.Error("Logstash: Unknown Port")
+  			fmt.Printf("Logstash: Unknown Port\n")
   		}
   		defer pc.Close()
 
   		addr, err := net.ResolveUDPAddr("udp4", session.Config.Logstash)
   		if err != nil {
-    		l.Error("Logstash: No Such Host")
+  			fmt.Printf("Logstash: No Such Host\n")	
   		}
   		
   		pc.WriteTo([]byte(payload), addr)	
