@@ -1,0 +1,20 @@
+name: Build Image and Run It
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build and Run
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - name: Build Image
+      run: docker build -t shhgit-test:latest .
+
+    - name: Run Image
+      run: docker run --rm -it -v $(pwd):$(pwd) -w $(pwd) shhgit --local $(pwd)
