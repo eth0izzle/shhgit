@@ -1,4 +1,4 @@
-FROM docker.artifactory.michelin.com/golang:alpine AS builder
+FROM golang:alpine AS builder
 
 WORKDIR /go/src
 ADD . .
