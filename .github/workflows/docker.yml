@@ -17,4 +17,4 @@ jobs:
       run: docker build -t shhgit-test:latest .
 
     - name: Run Image
-      run: docker run --rm -it -v $(pwd):$(pwd) -w $(pwd) shhgit --local $(pwd)
+      run: docker run --rm -v $(pwd):$(pwd) -w $(pwd) shhgit --local $(pwd)
