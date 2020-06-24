@@ -16,10 +16,10 @@ I developed shhgit to raise awareness and bring to life the prevalence of this i
 
 ## Installation
 
-You can use the [precompiled binaries](https://www.github.com/eth0izzle/shhgit/releases) or build from source:
+You can use the [precompiled binaries](https://www.github.com/eth0izzle/shhgit/releases) or allow Go to build from source:
 
 1. Install [Go](https://golang.org/doc/install) for your platform.
-2. `go get github.com/eth0izzle/shhgit` will download and build shhgit.
+2. `go get github.com/eth0izzle/shhgit` will download and build shhgit automtically. Optionally you can clone this repository manually and run `GO111MODULE=on CGO_ENABLED=0 go build -v -i -o shhgit`.
 3. See usage.
 
 Or you can run from Docker:
@@ -29,27 +29,13 @@ Or you can run from Docker:
 
 ## Usage
 
-shhgit needs to access the public GitHub API so you will need to obtain and provide an access token. The API has a hard rate limit of 5,000 requests per hour per account, regardless what token is used. The more account-unique tokens you provide, the faster you can process the events. Follow [this guide](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) to generate a token; it doesn't require any scopes or permissions. And then place it under `github_access_tokens` in `config.yaml`. **Note that it is against the GitHub terms to bypass their rate limits. Use multiple tokens at your own risk**.
+shhgit can work in two ways: through the GitHub, GitLab and BitBucket public repoistorties or by processing files in a local directory.
 
-Unlike other tools, you don't need to pass any targets with shhgit. Simply run `$ shhgit` to start watching GitHub commits and find secrets or sensitive files matching the included 120 signatures.
+By default, shhgit will run in the former 'public mode' and needs to access the public GitHub API. You will need to obtain and provide an access token. The API has a hard rate limit of 5,000 requests per hour per account, regardless what token is used. The more account-unique tokens you provide, the faster you can process the events. Follow [this guide](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) to generate a token; it doesn't require any scopes or permissions. And then place it under `github_access_tokens` in `config.yaml`. **Note that it is against the GitHub terms to bypass their rate limits. Use multiple tokens at your own risk**.
 
-Alternatively, you can forgo the signatures and use shhgit with a search query, e.g. to find all AWS keys you could use `shhgit --search-query AWS_ACCESS_KEY_ID=AKIA`
+Unlike other tools, you don't need to pass any targets with shhgit. Simply run `$ shhgit` to start watching GitHub commits and find secrets or sensitive files matching the included 120 signatures. You can also forgo the signatures and use shhgit with a search query, e.g. to find all AWS keys you could use `shhgit --search-query AWS_ACCESS_KEY_ID=AKIA`
 
-### Running locally
-
-There's also possibility to run shhgit locally, and include it also to CI pipeline's to scan e.g. private repos or repos in some other service than Github.
-
-Local running is enabled with flag `--local`. It value should be directory to scan (scan is made recursively).
-
-#### With Docker
-
-1. Build container: `docker image build -t shhgit .`
-2. Scan local directory with docker container (Linux/Mac): `docker container run --rm -it -v $(pwd):$(pwd) -w $(pwd) shhgit --local $(pwd)`
-
-#### Directly with compiled shhgit
-
-1. Build application: `GO111MODULE=on CGO_ENABLED=0 go build -v -i -o shhgit` (note that build goes to same directory as `config.yaml`, so there's no need to define path for configuration with `--config-path` flag)
-2. Scan local directory with compiled app: `./shhgit --local <absolute path to directory that should be scanned recursively>`
+To run in local mode (and perhaps integrate in to your CI pipelines) you can pass the `--local` flag (see Usage below).
 
 ### Options
 
@@ -128,10 +114,6 @@ Shell profile configuration file, Shell command alias configuration file, PHP co
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request.
-
-## Credits
-
-Some code borrowed from [Gitrob](https://github.com/michenriksen/gitrob) by [Michael Henriksen](https://michenriksen.com/).
 
 ## Disclaimer
 
