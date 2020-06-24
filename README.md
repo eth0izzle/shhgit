@@ -11,22 +11,21 @@ I developed shhgit to raise awareness and bring to life the prevalence of this i
 
 **With some tweaking of the signatures shhgit would make an awesome addition to your bug bounty toolkit.**
 
-
 ![shhgit](images/shhgit-example.png)
 ![shhgit live!](images/shhgit-live-example.png)
 
-## Run from Docker
-
-1. Edit config.yaml and insert your github credentials
-2. `$ docker run -v $(pwd)/config.yaml:/config.yaml:ro fnxpt/shhgit`
-
 ## Installation
 
-You can use the [precompiled binaries](https://www.github.com/eth0izzle/shhgit/releases) **or** build from source:
+You can use the [precompiled binaries](https://www.github.com/eth0izzle/shhgit/releases) or build from source:
 
 1. Install [Go](https://golang.org/doc/install) for your platform.
-2. `$ go get github.com/eth0izzle/shhgit` will download and build shhgit.
+2. `go get github.com/eth0izzle/shhgit` will download and build shhgit.
 3. See usage.
+
+Or you can run from Docker:
+
+1. Grab a copy of the config.yaml and insert your github credentials (see Usage).
+2. `docker run -v config.yaml:/config.yaml:ro eth0izzle/shhgit`
 
 ## Usage
 
