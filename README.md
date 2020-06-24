@@ -1,8 +1,8 @@
-# **shhgit**: find GitHub secrets in real time
+# **shhgit**: find secrets in GitHub, GitLab and BitBucket code in real time
 
-![](https://img.shields.io/docker/cloud/build/eth0izzle/shhgit.svg) ![](https://img.shields.io/docker/pulls/eth0izzle/shhgit.svg)
+![Go](https://github.com/eth0izzle/shhgit/workflows/Go/badge.svg) ![](https://img.shields.io/docker/cloud/build/eth0izzle/shhgit.svg) ![](https://img.shields.io/docker/pulls/eth0izzle/shhgit.svg)
 
-**Shhgit finds secrets and sensitive files across GitHub code and Gists committed in *near* real time by listening to the [GitHub Events API](https://developer.github.com/v3/activity/events/).**
+**Shhgit finds secrets and sensitive files across GitHub (including Gists), GitLab and BitBucket committed in *near* real time.
 
 _Love shhgit? Help me reach my goal by sponsoring me via GitHub: https://github.com/sponsors/eth0izzle/_
 
