@@ -1,13 +1,12 @@
-# **shhgit**: find secrets in GitHub, GitLab and BitBucket code in real time
+## shhgit finds secrets and sensitive files across GitHub (including Gists), GitLab and BitBucket committed in *near* real time.
 
 ![Go](https://github.com/eth0izzle/shhgit/workflows/Go/badge.svg) ![](https://img.shields.io/docker/cloud/build/eth0izzle/shhgit.svg) ![](https://img.shields.io/docker/pulls/eth0izzle/shhgit.svg)
 
-**Shhgit finds secrets and sensitive files across GitHub (including Gists), GitLab and BitBucket committed in *near* real time.
-
 _Love shhgit? Help me reach my goal by sponsoring me via GitHub: https://github.com/sponsors/eth0izzle/_
 
-![shhgit](images/shhgit.png)
-## **[NEW: LIVE VERSION. Find GitHub secrets straight from your browser!](https://shhgit.darkport.co.uk)**
+<img src="images/shhgit.png" height="30%" width="30%" />
+
+## **[NEW: LIVE VERSION. Find secrets find from your browser!](https://shhgit.darkport.co.uk)**
 
 Finding secrets in GitHub is nothing new. There are many great tools available to help with this depending on which side of the fence you sit. On the adversarial side, popular tools such as <a href="https://github.com/michenriksen/gitrob">gitrob</a> and <a href="https://github.com/dxa4481/truffleHog">truggleHog</a> focus on digging in to commit history to find secret tokens from specific repositories, users or organisations. On the defensive side, GitHub themselves are actively scanning for secrets through their [token scanning](https://help.github.com/en/articles/about-token-scanning) project. Their objective is to identify secret tokens within committed code in real-time and notify the service provider to action. So in theory if any AWS secret keys are committed to GitHub, Amazon will be notified and automatically revoke them.
 
