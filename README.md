@@ -2,6 +2,8 @@
 
 **Shhgit finds secrets and sensitive files across GitHub code and Gists committed in *near* real time by listening to the [GitHub Events API](https://developer.github.com/v3/activity/events/).**
 
+_Love shhgit? Help me reach my goal by sponsoring me via GitHub: https://github.com/sponsors/eth0izzle/_
+
 ![shhgit](images/shhgit.png)
 ## **[NEW: LIVE VERSION. Find GitHub secrets straight from your browser!](https://shhgit.darkport.co.uk)**
 
