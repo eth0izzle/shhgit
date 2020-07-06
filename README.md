@@ -28,7 +28,7 @@ You can use the [precompiled binaries](https://www.github.com/eth0izzle/shhgit/r
 Or you can run from Docker:
 
 1. Grab a copy of the config.yaml and insert your github credentials (see Usage).
-2. `docker run -v config.yaml:/config.yaml:ro eth0izzle/shhgit`
+2. `docker run -v $(pwd)/config.yaml:/config.yaml:ro eth0izzle/shhgit`
 
 ## Usage
 
