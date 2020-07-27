@@ -15,6 +15,7 @@ type MatchFile struct {
 }
 
 func NewMatchFile(path string) MatchFile {
+	path = filepath.ToSlash(path)
 	_, filename := filepath.Split(path)
 	extension := filepath.Ext(path)
 	contents, _ := ioutil.ReadFile(path)
@@ -68,7 +69,6 @@ func GetMatchingFiles(dir string) []MatchFile {
 		if err != nil || f.IsDir() || uint(f.Size()) > maxFileSize || IsSkippableFile(path) {
 			return nil
 		}
-
 		fileList = append(fileList, NewMatchFile(path))
 		return nil
 	})
