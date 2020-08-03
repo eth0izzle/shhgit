@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"net/http"
+	"net"
 	"os"
 	"regexp"
 	"strings"
@@ -66,7 +67,24 @@ func (l *Logger) Log(level int, format string, args ...interface{}) {
 		payload := fmt.Sprintf(session.Config.WebhookPayload, text)
 		http.Post(session.Config.Webhook, "application/json", strings.NewReader(payload))
 	}
+	
+	if session.Config.Logstash != "" {
+		text := colorStrip(fmt.Sprintf(format, args...))
+		payload := fmt.Sprintf(session.Config.Logstash, text)				
+  		pc, err := net.ListenPacket("udp4", ":" + session.Config.LogstashPort)
+  		if err != nil {
+  			fmt.Printf("Logstash: Unknown Port\n")
+  		}
+  		defer pc.Close()
 
+  		addr, err := net.ResolveUDPAddr("udp4", session.Config.Logstash)
+  		if err != nil {
+  			fmt.Printf("Logstash: No Such Host\n")	
+  		}
+  		
+  		pc.WriteTo([]byte(payload), addr)	
+	}
+	
 	if level == FATAL {
 		os.Exit(1)
 	}
