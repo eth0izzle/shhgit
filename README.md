@@ -89,6 +89,7 @@ github_access_tokens: # provide at least one token
   - 'token two'
 webhook: '' # URL to a POST webhook.
 webhook_payload: '' # Payload to POST to the webhook URL
+blacklisted_strings: [] # list of strings to ignore
 blacklisted_extensions: [] # list of extensions to ignore
 blacklisted_paths: [] # list of paths to ignore
 blacklisted_entropy_extensions: [] # additional extensions to ignore for entropy checks
