@@ -57,7 +57,7 @@ func (s *Session) InitSignatures() {
 }
 
 func (s *Session) InitGitHubClients() {
-	if !s.Options.LocalRun {
+	if len(*s.Options.Local) <= 0 {
 		chanSize := *s.Options.Threads * (len(s.Config.GitHubAccessTokens) + 1)
 		s.Clients = make(chan *GitHubClientWrapper, chanSize)
 		s.ExhaustedClients = make(chan *GitHubClientWrapper, chanSize)

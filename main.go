@@ -160,7 +160,7 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 			}
 		}
 
-		if !matchedAny && !session.Options.LocalRun {
+		if !matchedAny && len(*session.Options.Local) <= 0 {
 			os.Remove(file.Path)
 		}
 	}
@@ -168,13 +168,16 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 }
 
 func publish(event *MatchEvent) {
-	data, _ := json.Marshal(event)
-	http.Post("http://shhgit-www/push", "application/json", bytes.NewBuffer(data))
+	// todo: implement a modular plugin system to handle the various outputs (console, live, csv, webhooks, etc)
+	if len(*session.Options.Live) > 0 {
+		data, _ := json.Marshal(event)
+		http.Post(*session.Options.Live, "application/json", bytes.NewBuffer(data))
+	}
 }
 
 func main() {
-	if session.Options.LocalRun {
-		session.Log.Info("Scanning local dir %s with %s v%s. Loaded %d signatures.", *session.Options.Local, core.Name, core.Version, len(session.Signatures))
+	if len(*session.Options.Local) > 0 {
+		session.Log.Info("Scanning local dir %s with %s v%s. Loaded %d signatures.", session.Options.Local, core.Name, core.Version, len(session.Signatures))
 		rc := 0
 		if checkSignatures(*session.Options.Local, *session.Options.Local, -1, core.LOCAL_SOURCE) {
 			rc = 1

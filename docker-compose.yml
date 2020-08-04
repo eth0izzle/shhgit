@@ -12,7 +12,7 @@ services:
   shhgit-app:
     build: ./
     container_name: shhgit.app
-    entrypoint: ["/app/shhgit"]
+    entrypoint: ["/app/shhgit", "--live=http://shhgit-www/push"]
     depends_on:
       - shhgit-www
     volumes:
