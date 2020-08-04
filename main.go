@@ -135,12 +135,22 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 								line := scanner.Text()
 
 								if len(line) > 6 && len(line) < 100 {
-									entropy := core.GetEntropy(scanner.Text())
+									entropy := core.GetEntropy(line)
 
 									if entropy >= *session.Options.EntropyThreshold {
-										publish(&MatchEvent{Source: source, Url: url, Matches: []string{scanner.Text()}, Signature: "High entropy string", File: relativeFileName, Stars: stars})
-										session.Log.Important("[%s] Potential secret in %s = %s", url, color.YellowString(relativeFileName), color.GreenString(scanner.Text()))
-										session.WriteToCsv([]string{url, signature.Name(), relativeFileName, scanner.Text()})
+										blacklistedMatch := false
+
+										for _, blacklistedString := range session.Config.BlacklistedStrings {
+											if strings.Contains(strings.ToLower(line), strings.ToLower(blacklistedString)) {
+												blacklistedMatch = true
+											}
+										}
+
+										if !blacklistedMatch {
+											publish(&MatchEvent{Source: source, Url: url, Matches: []string{line}, Signature: "High entropy string", File: relativeFileName, Stars: stars})
+											session.Log.Important("[%s] Potential secret in %s = %s", url, color.YellowString(relativeFileName), color.GreenString(line))
+											session.WriteToCsv([]string{url, signature.Name(), relativeFileName, line})
+										}
 									}
 								}
 							}

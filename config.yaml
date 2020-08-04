@@ -9,6 +9,7 @@ webhook_payload: |
     "text": "%s"
   }
 
+blacklisted_strings: ["AKIAIOSFODNN7EXAMPLE", "username:password", "sshpass -p $SSH_PASS"] # skip matches containing any of these strings (case insensitive
 blacklisted_extensions: [".exe", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".psd", ".xcf", ".zip", ".tar.gz", ".ttf", ".lock"]
 blacklisted_paths: ["node_modules{sep}", "vendor{sep}bundle", "vendor{sep}cache"] # use {sep} for the OS' path seperator (i.e. / or \)
 blacklisted_entropy_extensions: [".pem", "id_rsa", ".asc", ".ovpn", ".sqlite", ".sqlite3", ".log"] # additional extensions to skip entropy checks

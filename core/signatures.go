@@ -3,6 +3,7 @@ package core
 import (
 	"regexp"
 	"regexp/syntax"
+	"strings"
 )
 
 const (
@@ -93,7 +94,18 @@ func (s PatternSignature) GetContentsMatches(file MatchFile) []string {
 	matches := make([]string, 0)
 
 	for _, match := range s.match.FindAllSubmatch(file.Contents, -1) {
-		matches = append(matches, string(match[0]))
+		match := string(match[0])
+		blacklistedMatch := false
+
+		for _, blacklistedString := range session.Config.BlacklistedStrings {
+			if strings.Contains(strings.ToLower(match), strings.ToLower(blacklistedString)) {
+				blacklistedMatch = true
+			}
+		}
+
+		if !blacklistedMatch {
+			matches = append(matches, match)
+		}
 	}
 
 	return matches

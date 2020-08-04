@@ -31,7 +31,7 @@ func ParseOptions() (*Options, error) {
 		Silent:                 flag.Bool("silent", false, "Suppress all output except for errors"),
 		Debug:                  flag.Bool("debug", false, "Print debugging information"),
 		MaximumRepositorySize:  flag.Uint("maximum-repository-size", 5120, "Maximum repository size to process in KB"),
-		MaximumFileSize:        flag.Uint("maximum-file-size", 512, "Maximum file size to process in KB"),
+		MaximumFileSize:        flag.Uint("maximum-file-size", 256, "Maximum file size to process in KB"),
 		CloneRepositoryTimeout: flag.Uint("clone-repository-timeout", 10, "Maximum time it should take to clone a repository in seconds. Increase this if you have a slower connection"),
 		EntropyThreshold:       flag.Float64("entropy-threshold", 5.0, "Set to 0 to disable entropy checks"),
 		MinimumStars:           flag.Uint("minimum-stars", 0, "Only process repositories with this many stars. Default 0 will ignore star count"),
