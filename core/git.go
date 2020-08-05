@@ -41,7 +41,7 @@ func CloneRepository(session *Session, rawUrl string, dir string) (*git.Reposito
 		rawUrl = githubUrl.String()
 	}
 
-	session.Log.Debug("[%s] Cloning in to %s", url, strings.Replace(dir, *session.Options.TempDirectory, "", -1))
+	session.Log.Debug("[%s] Cloning in to %s", rawUrl, strings.Replace(dir, *session.Options.TempDirectory, "", -1))
 	repository, err := git.PlainCloneContext(localCtx, dir, false, &git.CloneOptions{
 		Depth:             1,
 		RecurseSubmodules: git.NoRecurseSubmodules,
@@ -51,7 +51,7 @@ func CloneRepository(session *Session, rawUrl string, dir string) (*git.Reposito
 	})
 
 	if err != nil {
-		session.Log.Debug("[%s] Cloning failed: %s", url, err.Error())
+		session.Log.Debug("[%s] Cloning failed: %s", rawUrl, err.Error())
 		return nil, err
 	}
 
