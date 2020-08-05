@@ -22,17 +22,24 @@ func GetRepositories(session *Session) {
 	localCtx, cancel := context.WithCancel(session.Context)
 	defer cancel()
 	observedKeys := map[int64]bool{}
+	var client *GitHubClientWrapper
 	for c := time.Tick(sleep); ; {
 		opt := &github.ListOptions{PerPage: perPage}
-		client := session.GetClient()
 
 		for {
+			if client != nil {
+				session.FreeClient(client)
+			}
+
+			client = session.GetClient()
+
 			events, resp, err := client.Activity.ListEvents(localCtx, opt)
 
 			if err != nil {
 				if _, ok := err.(*github.RateLimitError); ok {
 					session.Log.Warn("Token %s[..] rate limited. Reset at %s", client.Token[:10], resp.Rate.Reset)
 					client.RateLimitedUntil = resp.Rate.Reset.Time
+					session.FreeClient(client)
 					break
 				}
 
@@ -88,14 +95,20 @@ func GetGists(session *Session) {
 	observedKeys := map[string]bool{}
 	opt := &github.GistListOptions{}
 
+	var client *GitHubClientWrapper
 	for c := time.Tick(sleep); ; {
-		client := session.GetClient()
+		if client != nil {
+			session.FreeClient(client)
+		}
+
+		client = session.GetClient()
 		gists, resp, err := client.Gists.ListAll(localCtx, opt)
 
 		if err != nil {
 			if _, ok := err.(*github.RateLimitError); ok {
 				session.Log.Warn("Token %s[..] rate limited. Reset at %s", client.Token[:10], resp.Rate.Reset)
 				client.RateLimitedUntil = resp.Rate.Reset.Time
+				session.FreeClient(client)
 				break
 			}
 
@@ -103,7 +116,7 @@ func GetGists(session *Session) {
 				GetSession().Log.Fatal("GitHub API abused detected. Quitting...")
 			}
 
-			GetSession().Log.Important("Error getting GitHub Gists... trying again", err)
+			GetSession().Log.Warn("Error getting GitHub Gists... trying again", err)
 		}
 
 		newGists := make([]*github.Gist, 0, len(gists))
@@ -134,6 +147,8 @@ func GetGists(session *Session) {
 
 func GetRepository(session *Session, id int64) (*github.Repository, error) {
 	client := session.GetClient()
+	defer session.FreeClient(client)
+
 	repo, resp, err := client.Repositories.GetByID(session.Context, id)
 
 	if err != nil {

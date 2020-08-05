@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html> 
+    <head> 
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <title>shhgit: find secrets in real time across GitHub, GitLab and BitBucket</title>
+        <meta name="title" content="shhgit: find secrets in real time across GitHub, GitLab and BitBucket" />
+        <meta name="description" content="shhgit finds secrets and sensitive files across GitHub, GitLab and BitBucket code and Gists committed in near real time" />
+        <meta name="author" content="Paul Price (@darkp0r)" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css" />
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bulma-checkradio@1.1.1/dist/css/bulma-checkradio.min.css" />
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css" />
+        <link rel="stylesheet" type="text/css" href="/style.css" />
+    </head>
+
+    <body>
+        <div class="columns is-gapless">
+            <div id="menu" class="column is-2 has-background-dark menu is-mobile">
+                <section class="section has-text-centered" style="padding: 1.5rem;">
+                    <a href="https://github.com/eth0izzle/shhgit/" target="_blank">
+                        <img src="/logo.png" width="50%" />
+                    </a>
+
+                    <h1 class="title is-4 has-text-weight-bold has-text-white has-text-centered">
+                        shhgit <span class="is-size-5 has-text-primary has-text-weight-light">live!</span>
+                        <span class="tag is-dark">v0.4</span>
+                    </h1>
+
+                    <span id="matches-count" class="tag is-small">
+                        <span>0 matches</span>
+                    </span>
+                    <span id="filters-count" class="tag is-info is-small">
+                        <span>0 filters</span>
+                        <button class="delete is-small" id="filters-clear"></button>
+                    </span>
+                </section>
+
+                <ul class="menu-list" id="signatures"></ul>  
+            </div>
+
+            <div class="column">
+                <nav class="navbar has-background-grey-darker">
+                    <div class="navbar-menu">
+                        <div class="navbar-start">
+                            <div class="navbar-item">
+                                <div class="field">
+                                    <input class="is-checkradio is-white" id="setting-interesting-files" type="checkbox" name="setting-interesting-files" checked="checked" />
+                                    <label for="setting-interesting-files" class="has-text-white">Interesting file extensions</label>
+
+                                    <input class="is-checkradio is-white" id="setting-high-entropy-strings" type="checkbox" name="setting-high-entropy-strings" checked="checked" />
+                                    <label for="setting-high-entropy-strings" class="has-text-white">High entropy strings</label>
+
+                                    <input class="is-checkradio is-white" id="setting-notifications" type="checkbox" name="notifications" />
+                                    <label for="setting-notifications" class="has-text-white">Notify on match</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+
+                <div style="position:absolute;top:0;right:0;width:320px;z-index:100;margin-top:12px;">
+                    <a href="https://github.com/eth0izzle/shhgit/" target="_blank" title="View shhgit on GitHub!" class="button is-small"  style="margin-right:5px;">
+                        <span class="icon is-small">
+                            <i class="fab fa-lg fa-github"></i>
+                        </span>
+                        <span>shhgit</span>
+                    </a>
+
+                    <a href="https://www.twitter.com/darkp0rt" target="_blank" class="button is-info is-small" style="margin-right:5px;">
+                        <span class="icon is-small">
+                            <i class="fab fa-twitter"></i>
+                        </span>
+                        <span>@darkp0rt</span>
+                    </a>
+
+                    <a href="https://github.com/sponsors/eth0izzle" target="_blank" class="button is-link is-small" style="margin-right:5px;">
+                        <span class="icon is-small">
+                            <i class="fas fa-heart"></i>
+                        </span>
+                        <span>sponsor</span>
+                    </a>
+
+                    <span id="connection-status" class="button is-outlined is-size-7">Connecting...</span>
+
+                    <div class="mobile-burger burger is-hidden-desktop" data-target="menu" id="burger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+
+                <section class="section is-fluid" style="margin-top: 25px;">
+                    <div id="messages-wrapper">
+                        <table class="table is-fullwidth is-hoverable is-striped">
+                            <thead>
+                                <tr>
+                                    <th class="source"></th>
+                                    <th class="found">Found</th>
+                                    <th class="signature-name">Signature Name</th>
+                                    <th class="matches">Matches</th>
+                                    <th class="file-url">File</th>
+                                    <th class="stars" title="Repository star gazers"><span class="icon is-small"><i class="fas fa-star"></i></span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="messages"></tbody>
+                        </table>
+
+                        <div id="loading" class="container has-text-centered">
+                            <a class="button is-loading is-info">Loading</a>
+                            <p>Waiting for events...</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
+        <script type="text/javascript" src="/script.js"></script>
+    </body>
+</html>

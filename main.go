@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
+	"net/http"
 	"os"
 	"regexp"
 	"strings"
@@ -10,6 +12,15 @@ import (
 	"github.com/eth0izzle/shhgit/core"
 	"github.com/fatih/color"
 )
+
+type MatchEvent struct {
+	Url       string
+	Matches   []string
+	Signature string
+	File      string
+	Stars     int
+	Source    core.GitResourceType
+}
 
 var session = core.GetSession()
 
@@ -32,7 +43,7 @@ func ProcessRepositories() {
 					uint(repo.GetStargazersCount()) >= *session.Options.MinimumStars &&
 					uint(repo.GetSize()) < *session.Options.MaximumRepositorySize {
 
-					processRepositoryOrGist(repo.GetCloneURL())
+					processRepositoryOrGist(repo.GetCloneURL(), repo.GetStargazersCount(), core.GITHUB_SOURCE)
 				}
 			}
 		}(i)
@@ -46,13 +57,13 @@ func ProcessGists() {
 		go func(tid int) {
 			for {
 				gistUrl := <-session.Gists
-				processRepositoryOrGist(gistUrl)
+				processRepositoryOrGist(gistUrl, -1, core.GIST_SOURCE)
 			}
 		}(i)
 	}
 }
 
-func processRepositoryOrGist(url string) {
+func processRepositoryOrGist(url string, stars int, source core.GitResourceType) {
 	var (
 		matchedAny bool = false
 	)
@@ -67,13 +78,13 @@ func processRepositoryOrGist(url string) {
 	}
 
 	session.Log.Debug("[%s] Cloning in to %s", url, strings.Replace(dir, *session.Options.TempDirectory, "", -1))
-	matchedAny = checkSignatures(dir, url)
+	matchedAny = checkSignatures(dir, url, stars, source)
 	if !matchedAny {
 		os.RemoveAll(dir)
 	}
 }
 
-func checkSignatures(dir string, url string) (matchedAny bool) {
+func checkSignatures(dir string, url string, stars int, source core.GitResourceType) (matchedAny bool) {
 	for _, file := range core.GetMatchingFiles(dir) {
 		var (
 			matches          []string
@@ -106,11 +117,13 @@ func checkSignatures(dir string, url string) (matchedAny bool) {
 						if matches = signature.GetContentsMatches(file); matches != nil {
 							count := len(matches)
 							m := strings.Join(matches, ", ")
+							publish(&MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
 							session.Log.Important("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString(signature.Name()), relativeFileName, color.YellowString(m))
 							session.WriteToCsv([]string{url, signature.Name(), relativeFileName, m})
 						}
 					} else {
 						if *session.Options.PathChecks {
+							publish(&MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
 							session.Log.Important("[%s] Matching file %s for %s", url, color.YellowString(relativeFileName), color.GreenString(signature.Name()))
 							session.WriteToCsv([]string{url, signature.Name(), relativeFileName, ""})
 						}
@@ -122,11 +135,22 @@ func checkSignatures(dir string, url string) (matchedAny bool) {
 								line := scanner.Text()
 
 								if len(line) > 6 && len(line) < 100 {
-									entropy := core.GetEntropy(scanner.Text())
+									entropy := core.GetEntropy(line)
 
 									if entropy >= *session.Options.EntropyThreshold {
-										session.Log.Important("[%s] Potential secret in %s = %s", url, color.YellowString(relativeFileName), color.GreenString(scanner.Text()))
-										session.WriteToCsv([]string{url, signature.Name(), relativeFileName, scanner.Text()})
+										blacklistedMatch := false
+
+										for _, blacklistedString := range session.Config.BlacklistedStrings {
+											if strings.Contains(strings.ToLower(line), strings.ToLower(blacklistedString)) {
+												blacklistedMatch = true
+											}
+										}
+
+										if !blacklistedMatch {
+											publish(&MatchEvent{Source: source, Url: url, Matches: []string{line}, Signature: "High entropy string", File: relativeFileName, Stars: stars})
+											session.Log.Important("[%s] Potential secret in %s = %s", url, color.YellowString(relativeFileName), color.GreenString(line))
+											session.WriteToCsv([]string{url, signature.Name(), relativeFileName, line})
+										}
 									}
 								}
 							}
@@ -136,18 +160,26 @@ func checkSignatures(dir string, url string) (matchedAny bool) {
 			}
 		}
 
-		if !matchedAny {
+		if !matchedAny && len(*session.Options.Local) <= 0 {
 			os.Remove(file.Path)
 		}
 	}
 	return
 }
 
+func publish(event *MatchEvent) {
+	// todo: implement a modular plugin system to handle the various outputs (console, live, csv, webhooks, etc)
+	if len(*session.Options.Live) > 0 {
+		data, _ := json.Marshal(event)
+		http.Post(*session.Options.Live, "application/json", bytes.NewBuffer(data))
+	}
+}
+
 func main() {
-	if session.Options.LocalRun {
-		session.Log.Info("Scanning local dir %s with %s v%s. Loaded %d signatures.", *session.Options.Local, core.Name, core.Version, len(session.Signatures))
+	if len(*session.Options.Local) > 0 {
+		session.Log.Info("Scanning local dir %s with %s v%s. Loaded %d signatures.", session.Options.Local, core.Name, core.Version, len(session.Signatures))
 		rc := 0
-		if checkSignatures(*session.Options.Local, *session.Options.Local) {
+		if checkSignatures(*session.Options.Local, *session.Options.Local, -1, core.LOCAL_SOURCE) {
 			rc = 1
 		}
 		os.Exit(rc)

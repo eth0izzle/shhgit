@@ -1,6 +1,6 @@
 module github.com/eth0izzle/shhgit
 
-go 1.13
+go 1.14
 
 require (
 	github.com/fatih/color v1.7.0

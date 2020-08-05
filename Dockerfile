@@ -1,14 +1,14 @@
 FROM golang:alpine AS builder
-
 WORKDIR /go/src
-ADD . .
+COPY . .
 
 RUN export CGO_ENABLED=0 && go install && go build -o /
 
-FROM scratch AS runtime
-VOLUME /tmp/shhgit
+FROM golang:alpine AS runtime
+WORKDIR /app
 
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /shhgit .
+RUN apk update && apk add --no-cache git
 
-ENTRYPOINT [ "/shhgit" ]
+COPY --from=builder /shhgit /app
+
+ENTRYPOINT [ "/app/shhgit" ]
