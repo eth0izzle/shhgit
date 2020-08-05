@@ -1,5 +1,6 @@
 github_access_tokens:
   - ''
+github_enterprise_url: ''
 webhook: '' # URL to which the payload is POSTed
 
 # This default payload will work for Slack and MatterMost.

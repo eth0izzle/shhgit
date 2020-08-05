@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"net/url"
 	"strings"
 	"time"
 
@@ -24,22 +25,33 @@ type GitResource struct {
 	Url  string
 }
 
-func CloneRepository(session *Session, url string, dir string) (*git.Repository, error) {
+func CloneRepository(session *Session, rawUrl string, dir string) (*git.Repository, error) {
 	timeout := time.Duration(*session.Options.CloneRepositoryTimeout) * time.Second
 	localCtx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+  
+  if len(session.Config.GitHubEnterpriseUrl) > 0 {
+		githubUrl, err := url.Parse(rawUrl)
+		if err != nil {
+			return nil, err
+		}
 
-	session.Log.Debug("[%s] Cloning in to %s", url, strings.Replace(dir, *session.Options.TempDirectory, "", -1))
+		userInfo := url.User(session.Config.GitHubAccessTokens[0])
+		githubUrl.User = userInfo
+		rawUrl = githubUrl.String()
+	}
+
+	session.Log.Debug("[%s] Cloning in to %s", rawUrl, strings.Replace(dir, *session.Options.TempDirectory, "", -1))
 	repository, err := git.PlainCloneContext(localCtx, dir, false, &git.CloneOptions{
 		Depth:             1,
 		RecurseSubmodules: git.NoRecurseSubmodules,
-		URL:               url,
+		URL:               rawUrl,
 		SingleBranch:      true,
 		Tags:              git.NoTags,
 	})
 
 	if err != nil {
-		session.Log.Debug("[%s] Cloning failed: %s", url, err.Error())
+		session.Log.Debug("[%s] Cloning failed: %s", rawUrl, err.Error())
 		return nil, err
 	}
 

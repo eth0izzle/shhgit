@@ -13,6 +13,7 @@ import (
 
 type Config struct {
 	GitHubAccessTokens           []string          `yaml:"github_access_tokens"`
+	GitHubEnterpriseUrl          string            `yaml:"github_enterprise_url"`
 	Webhook                      string            `yaml:"webhook,omitempty"`
 	WebhookPayload               string            `yaml:"webhook_payload,omitempty"`
 	BlacklistedStrings           []string          `yaml:"blacklisted_strings"`

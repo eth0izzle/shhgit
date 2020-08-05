@@ -28,6 +28,7 @@ You have two options. I'd recommend the first as it will give you access to the 
 4. Bring up the stack: `docker-compose up`
 5. Open up http://localhost:8080/
 
+
 ### via Go get
 
 _Note_: this method does not include the shhgit web interface
@@ -40,7 +41,8 @@ _Note_: this method does not include the shhgit web interface
 
 shhgit can work in two ways: consuming the public APIs of GitHub, Gist, GitLab and BitBucket  or by processing files in a local directory.
 
-By default, shhgit will run in the former 'public mode'. For GitHub and Gist, you will need to obtain and provide an access token (see [this guide](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line); it doesn't require any scopes or permissions. And then place it under `github_access_tokens` in `config.yaml`). GitLab and BitBucket do not require any API tokens.
+By default, shhgit will run in the former 'public mode'. For GitHub and Gist, you will need to obtain and provide an access token (see [this guide](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line); it doesn't require any scopes or permissions. And then place it under `github_access_tokens` in `config.yaml`).
+For GitHub Enterprise (GHE) a token is also needed, but rate limiting is configurable and your token might need read access to the repositories in questions depending on the configuration of your GHE instance. GitLab and BitBucket do not require any API tokens.
 
 You can also forgo the signatures and use shhgit with your own custom search query, e.g. to find all AWS keys you could use `shhgit --search-query AWS_ACCESS_KEY_ID=AKIA`. And to run in local mode (and perhaps integrate in to your CI pipelines) you can pass the `--local` flag (see usage below).
 
@@ -87,6 +89,7 @@ The `config.yaml` file has 7 elements. A [default is provided](https://github.co
 github_access_tokens: # provide at least one token
   - 'token one'
   - 'token two'
+github_enterprise_url: '' # url to your github enterprise (optional)
 webhook: '' # URL to a POST webhook.
 webhook_payload: '' # Payload to POST to the webhook URL
 blacklisted_strings: [] # list of strings to ignore
