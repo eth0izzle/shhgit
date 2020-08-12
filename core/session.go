@@ -24,6 +24,7 @@ type Session struct {
 	Signatures       []Signature
 	Repositories     chan int64
 	Gists            chan string
+	Comments         chan string
 	Context          context.Context
 	Clients          chan *GitHubClientWrapper
 	ExhaustedClients chan *GitHubClientWrapper
@@ -66,7 +67,6 @@ func (s *Session) InitGitHubClients() {
 			tc := oauth2.NewClient(s.Context, ts)
 
 			client := github.NewClient(tc)
-
 			client.UserAgent = fmt.Sprintf("%s v%s", Name, Version)
 			_, _, err := client.Users.Get(s.Context, "")
 
@@ -165,6 +165,7 @@ func GetSession() *Session {
 			Context:      context.Background(),
 			Repositories: make(chan int64, 1000),
 			Gists:        make(chan string, 100),
+			Comments:     make(chan string, 1000),
 		}
 
 		if session.Options, err = ParseOptions(); err != nil {
@@ -177,7 +178,6 @@ func GetSession() *Session {
 			os.Exit(1)
 		}
 
-		session.Version = Version
 		session.Start()
 	})
 

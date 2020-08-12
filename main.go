@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -63,6 +65,24 @@ func ProcessGists() {
 	}
 }
 
+func ProcessComments() {
+	threadNum := *session.Options.Threads
+
+	for i := 0; i < threadNum; i++ {
+		go func(tid int) {
+			for {
+				commentBody := <-session.Comments
+				dir := core.GetTempDir(core.GetHash(commentBody))
+				ioutil.WriteFile(filepath.Join(dir, "comment.ignore"), []byte(commentBody), 0644)
+
+				if !checkSignatures(dir, "ISSUE", 0, core.GITHUB_COMMENT) {
+					os.RemoveAll(dir)
+				}
+			}
+		}(i)
+	}
+}
+
 func processRepositoryOrGist(url string, stars int, source core.GitResourceType) {
 	var (
 		matchedAny bool = false
@@ -114,7 +134,7 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 					matchedAny = true
 
 					if part == core.PartContents {
-						if matches = signature.GetContentsMatches(file); matches != nil {
+						if matches = signature.GetContentsMatches(file.Contents); matches != nil {
 							count := len(matches)
 							m := strings.Join(matches, ", ")
 							publish(&MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
@@ -149,7 +169,7 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 										if !blacklistedMatch {
 											publish(&MatchEvent{Source: source, Url: url, Matches: []string{line}, Signature: "High entropy string", File: relativeFileName, Stars: stars})
 											session.Log.Important("[%s] Potential secret in %s = %s", url, color.YellowString(relativeFileName), color.GreenString(line))
-											session.WriteToCsv([]string{url, signature.Name(), relativeFileName, line})
+											session.WriteToCsv([]string{url, "High entropy string", relativeFileName, line})
 										}
 									}
 								}
@@ -176,29 +196,35 @@ func publish(event *MatchEvent) {
 }
 
 func main() {
+	session.Log.Info(color.HiBlueString(core.Banner))
+	session.Log.Info("\t%s\n", color.HiCyanString(core.Author))
+	session.Log.Info("[*] Loaded %s signatures. Using %s worker threads. Temp work dir: %s\n", color.BlueString("%d", len(session.Signatures)), color.BlueString("%d", *session.Options.Threads), color.BlueString(*session.Options.TempDirectory))
+
 	if len(*session.Options.Local) > 0 {
-		session.Log.Info("Scanning local dir %s with %s v%s. Loaded %d signatures.", session.Options.Local, core.Name, core.Version, len(session.Signatures))
+		session.Log.Info("[*] Scanning local directory: %s - skipping public repository checks...", color.BlueString(*session.Options.Local))
 		rc := 0
 		if checkSignatures(*session.Options.Local, *session.Options.Local, -1, core.LOCAL_SOURCE) {
 			rc = 1
+		} else {
+			session.Log.Info("[*] No matching secrets found in %s!", color.BlueString(*session.Options.Local))
 		}
 		os.Exit(rc)
 	} else {
-		session.Log.Info("%s v%s started. Loaded %d signatures. Using %d GitHub tokens and %d threads. Work dir: %s", core.Name, core.Version, len(session.Signatures), len(session.Clients), *session.Options.Threads, *session.Options.TempDirectory)
-
 		if *session.Options.SearchQuery != "" {
 			session.Log.Important("Search Query '%s' given. Only returning matching results.", *session.Options.SearchQuery)
 		}
 
 		go core.GetRepositories(session)
 		go ProcessRepositories()
+		go ProcessComments()
 
 		if *session.Options.ProcessGists {
 			go core.GetGists(session)
 			go ProcessGists()
 		}
 
-		session.Log.Info("Press Ctrl+C to stop and exit.\n")
+		spinny := core.ShowSpinner()
 		select {}
+		spinny()
 	}
 }

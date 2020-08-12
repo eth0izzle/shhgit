@@ -56,9 +56,9 @@ func (l *Logger) Log(level int, format string, args ...interface{}) {
 	}
 
 	if c, ok := LogColors[level]; ok {
-		c.Printf(format+"\n", args...)
+		c.Printf("\r"+format+"\n", args...)
 	} else {
-		fmt.Printf(format+"\n", args...)
+		fmt.Printf("\r"+format+"\n", args...)
 	}
 
 	if level > WARN && session.Config.Webhook != "" {

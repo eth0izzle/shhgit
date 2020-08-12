@@ -13,6 +13,7 @@ type GitResourceType int
 const (
 	LOCAL_SOURCE GitResourceType = iota
 	GITHUB_SOURCE
+	GITHUB_COMMENT
 	GIST_SOURCE
 	BITBUCKET_SOURCE
 	GITLAB_SOURCE
