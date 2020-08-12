@@ -1,5 +1,5 @@
 <p align="center">
-<img src="images/shhgit.png" height="30%" width="30%" />
+<img src="https://user-images.githubusercontent.com/97316/90076675-47a1af00-dcf8-11ea-9872-7fdf02736a6c.png" height="30%" width="30%" />
 
 ## **shhgit finds committed secrets and sensitive files across GitHub, Gists, GitLab and BitBucket or your local repositories in real time.**
 
@@ -7,7 +7,7 @@
 
 ## **[shhgit live! Find secrets right from your browser.](https://shhgit.darkport.co.uk)**
 
-<a href="https://shhgit.darkport.co.uk"><img src="images/shhgit.gif" /></a>
+<a href="https://shhgit.darkport.co.uk"><img src="https://user-images.githubusercontent.com/97316/90076719-5ee09c80-dcf8-11ea-87c7-c5f3b454f246.gif" /></a>
 </p>
 
 Finding secrets in GitHub is nothing new. There are many great tools available to help with this depending on which side of the fence you sit. On the adversarial side, popular tools such as <a href="https://github.com/michenriksen/gitrob">gitrob</a> and <a href="https://github.com/dxa4481/truffleHog">truggleHog</a> focus on digging in to commit history to find secret tokens from specific repositories, users or organisations. On the defensive side, GitHub themselves are actively scanning for secrets through their [token scanning](https://help.github.com/en/articles/about-token-scanning) project. Their objective is to identify secret tokens within committed code in real-time and notify the service provider to action. So in theory if any AWS secret keys are committed to GitHub, Amazon will be notified and automatically revoke them.
