@@ -3,9 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -14,15 +12,6 @@ import (
 	"github.com/eth0izzle/shhgit/core"
 	"github.com/fatih/color"
 )
-
-type MatchEvent struct {
-	Url       string
-	Matches   []string
-	Signature string
-	File      string
-	Stars     int
-	Source    core.GitResourceType
-}
 
 var session = core.GetSession()
 
@@ -125,8 +114,8 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 			if matches != nil {
 				count := len(matches)
 				m := strings.Join(matches, ", ")
+				publish(core.MatchEvent{Url: url, Signature: "Search Query", File: relativeFileName, Matches: matches})
 				session.Log.Important("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString("Search Query"), relativeFileName, color.YellowString(m))
-				session.WriteToCsv([]string{url, "Search Query", relativeFileName, m})
 			}
 		} else {
 			for _, signature := range session.Signatures {
@@ -137,15 +126,13 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 						if matches = signature.GetContentsMatches(file.Contents); matches != nil {
 							count := len(matches)
 							m := strings.Join(matches, ", ")
-							publish(&MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
+							publish(core.MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
 							session.Log.Important("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString(signature.Name()), relativeFileName, color.YellowString(m))
-							session.WriteToCsv([]string{url, signature.Name(), relativeFileName, m})
 						}
 					} else {
 						if *session.Options.PathChecks {
-							publish(&MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
+							publish(core.MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
 							session.Log.Important("[%s] Matching file %s for %s", url, color.YellowString(relativeFileName), color.GreenString(signature.Name()))
-							session.WriteToCsv([]string{url, signature.Name(), relativeFileName, ""})
 						}
 
 						if *session.Options.EntropyThreshold > 0 && file.CanCheckEntropy() {
@@ -167,9 +154,8 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 										}
 
 										if !blacklistedMatch {
-											publish(&MatchEvent{Source: source, Url: url, Matches: []string{line}, Signature: "High entropy string", File: relativeFileName, Stars: stars})
+											publish(core.MatchEvent{Source: source, Url: url, Matches: []string{line}, Signature: "High entropy string", File: relativeFileName, Stars: stars})
 											session.Log.Important("[%s] Potential secret in %s = %s", url, color.YellowString(relativeFileName), color.GreenString(line))
-											session.WriteToCsv([]string{url, "High entropy string", relativeFileName, line})
 										}
 									}
 								}
@@ -187,11 +173,12 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 	return
 }
 
-func publish(event *MatchEvent) {
-	// todo: implement a modular plugin system to handle the various outputs (console, live, csv, webhooks, etc)
-	if len(*session.Options.Live) > 0 {
-		data, _ := json.Marshal(event)
-		http.Post(*session.Options.Live, "application/json", bytes.NewBuffer(data))
+func publish(event core.MatchEvent) {
+	for _, publisher := range session.Publishers {
+		err := publisher.Publish(event)
+		if err != nil {
+			session.Log.Error("Cannot publish: %s", err)
+		}
 	}
 }
 
