@@ -1,19 +1,18 @@
 version: '2.4'
 
 services:
-  shhgit-www:
+  www:
     build: ./www
-    container_name: shhgit.www
     ports:
       - 8080:80 # if you change your local port update public/script.js:1273
     volumes:
       - ./www/public:/usr/share/nginx/html:ro
 
-  shhgit-app:
-    build: ./
-    container_name: shhgit.app
-    entrypoint: ["/app/shhgit", "--live=http://shhgit-www/push"]
+  app:
+    build: ./app
+    entrypoint: ["/app/shhgit", "--live=http://www/push"]
     depends_on:
-      - shhgit-www
+      - www
     volumes:
-      - ./config.yaml:/app/config.yaml:ro
+      - ./app/config.yaml:/app/config.yaml:ro
+      - ./app/rules:/app/rules:ro

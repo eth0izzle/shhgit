@@ -1,0 +1,58 @@
+# see README
+
+sources:
+  local:
+    enabled: false
+    path: ''
+
+  github:
+    enabled: true
+    endpoint: 'https://api.github.com/events'
+    per_page: 100
+    check_interval: 30
+    tokens: 
+      - ''
+
+  gist:
+    enabled: true
+    endpoint: 'https://api.github.com/gists/public'
+    per_page: 300
+    check_interval: 160
+    tokens: 
+      - ''
+
+  gitlab:
+    enabled: true
+    endpoint: 'https://gitlab.com/api/v4/projects?visibility=public&order_by=updated_at&sort=desc'
+    per_page: 100
+    check_interval: 120
+    tokens: []
+
+  bitbucket:
+    enabled: true
+    endpoint: 'https://api.bitbucket.org/2.0/repositories'
+    per_page: 100 
+    check_interval: 900
+    tokens: []
+
+outputs:
+  webhook:
+    endpoint: ''
+    webhook_payload: '{ "text": "%s" }'
+  file:
+    path: ''
+    type: '' # only csv or json supported
+  elastic_search:
+    address: ''
+    username: ''
+    password: ''
+    index: ''
+  raw:
+    ip: ''
+    port: 0
+
+blacklists: # ignore these when matching signatures
+  strings: ["AKIAIOSFODNN7EXAMPLE", "username:password", "sshpass -p $SSH_PASS"]
+  extensions: [".exe", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".psd", ".xcf", ".zip", ".tar.gz", ".ttf", ".lock"]
+  entropy_extensions: [".pem", "id_rsa", ".asc", ".ovpn", ".sqlite", ".sqlite3", ".log"]
+  paths: ["node_modules/", "vendor/bundle", "vendor/cache", ".git/"]
