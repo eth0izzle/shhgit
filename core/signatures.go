@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"regexp"
 	"regexp/syntax"
 	"strings"
@@ -92,7 +93,9 @@ func (s PatternSignature) Match(file MatchFile) (bool, string) {
 
 func (s PatternSignature) GetContentsMatches(contents []byte) []string {
 	matches := make([]string, 0)
-
+	if len(session.Config.IgnoreLinePragmas) > 0 {
+		contents = StripIgnoredLines(contents, session.Config.IgnoreLinePragmas)
+	}
 	for _, match := range s.match.FindAllSubmatch(contents, -1) {
 		match := string(match[0])
 		blacklistedMatch := false
@@ -113,6 +116,25 @@ func (s PatternSignature) GetContentsMatches(contents []byte) []string {
 
 func (s PatternSignature) Name() string {
 	return s.name
+}
+
+func StripIgnoredLines(contents []byte, ignoreLinePragmas []string) []byte {
+	processedLines := make([][]byte, 0)
+	newlineByte := []byte("\n")
+
+	lines := strings.Split(string(contents[:]), "\n")
+	for _, line := range lines {
+		ignoreCurrentLine := false
+		for _, ignoreLinePragma := range ignoreLinePragmas {
+			if strings.Contains(strings.ToLower(line), strings.ToLower(ignoreLinePragma)) {
+				ignoreCurrentLine = true
+			}
+		}
+		if !ignoreCurrentLine {
+			processedLines = append(processedLines, []byte(line))
+		}
+	}
+	return bytes.Join(processedLines, newlineByte)
 }
 
 func GetSignatures(s *Session) []Signature {
