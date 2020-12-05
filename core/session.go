@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"encoding/csv"
 	"fmt"
 	"math/rand"
 	"os"
@@ -28,7 +27,7 @@ type Session struct {
 	Context          context.Context
 	Clients          chan *GitHubClientWrapper
 	ExhaustedClients chan *GitHubClientWrapper
-	CsvWriter        *csv.Writer
+	Publishers       []Publisher
 }
 
 var (
@@ -44,7 +43,7 @@ func (s *Session) Start() {
 	s.InitThreads()
 	s.InitSignatures()
 	s.InitGitHubClients()
-	s.InitCsvWriter()
+	s.InitPublishers()
 }
 
 func (s *Session) InitLogger() {
@@ -130,33 +129,32 @@ func (s *Session) InitThreads() {
 	runtime.GOMAXPROCS(*s.Options.Threads + 1)
 }
 
-func (s *Session) InitCsvWriter() {
-	if *s.Options.CsvPath == "" {
-		return
+func (s *Session) InitPublishers() {
+	header := []string{"Repository name", "Signature name", "Matching file", "Matches"}
+
+	// Setup our delimited publisher
+	if *s.Options.CsvPath != "" {
+		// Convert delimiter to a rune slice. We only need the first rune
+		delimiter := []rune(*s.Options.Delimiter)
+		publisher, err := NewDelimitedSource(*s.Options.CsvPath, delimiter[0], header)
+		if err != nil {
+			s.Log.Error("Cannot create CSV publisher: %s", err)
+		}
+		if err == nil {
+			s.Publishers = append(s.Publishers, &publisher)
+		}
 	}
 
-	writeHeader := false
-	if !PathExists(*s.Options.CsvPath) {
-		writeHeader = true
+	// Setup our Live publisher
+	if *session.Options.Live != "" {
+		publisher, err := NewWebSource(*session.Options.Live, "POST", "application/json")
+		if err != nil {
+			s.Log.Error("Cannot create Live publisher: %s", err)
+		}
+		if err == nil {
+			s.Publishers = append(s.Publishers, &publisher)
+		}
 	}
-
-	file, err := os.OpenFile(*s.Options.CsvPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	LogIfError("Could not create/open CSV file", err)
-
-	s.CsvWriter = csv.NewWriter(file)
-
-	if writeHeader {
-		s.WriteToCsv([]string{"Repository name", "Signature name", "Matching file", "Matches"})
-	}
-}
-
-func (s *Session) WriteToCsv(line []string) {
-	if *s.Options.CsvPath == "" {
-		return
-	}
-
-	s.CsvWriter.Write(line)
-	s.CsvWriter.Flush()
 }
 
 func GetSession() *Session {

@@ -19,6 +19,7 @@ type Options struct {
 	ProcessGists           *bool
 	TempDirectory          *string
 	CsvPath                *string
+	Delimiter              *string
 	SearchQuery            *string
 	Local                  *string
 	Live                   *string
@@ -39,6 +40,7 @@ func ParseOptions() (*Options, error) {
 		ProcessGists:           flag.Bool("process-gists", true, "Will watch and process Gists. Set to false to disable."),
 		TempDirectory:          flag.String("temp-directory", filepath.Join(os.TempDir(), Name), "Directory to process and store repositories/matches"),
 		CsvPath:                flag.String("csv-path", "", "CSV file path to log found secrets to. Leave blank to disable"),
+		Delimiter:              flag.String("delimiter", ",", "Delimiter for CSV file."),
 		SearchQuery:            flag.String("search-query", "", "Specify a search string to ignore signatures and filter on files containing this string (regex compatible)"),
 		Local:                  flag.String("local", "", "Specify local directory (absolute path) which to scan. Scans only given directory recursively. No need to have Githib tokens with local run."),
 		Live:                   flag.String("live", "", "Your shhgit live endpoint"),
