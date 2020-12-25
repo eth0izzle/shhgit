@@ -80,7 +80,12 @@ func GetRepositories(session *Session) {
 
 					dst := &github.PushEvent{}
 					json.Unmarshal(e.GetRawPayload(), dst)
-					session.Repositories <- *e.Repo.ID
+					session.Repositories <- GitResource{
+						Id:   e.GetRepo().GetID(),
+						Type: GITHUB_SOURCE,
+						Url:  e.GetRepo().GetURL(),
+						Ref:  dst.GetRef(),
+					}
 				} else if *e.Type == "IssueCommentEvent" {
 					observedKeys[*e.ID] = true
 

@@ -22,7 +22,7 @@ type Session struct {
 	Options          *Options
 	Config           *Config
 	Signatures       []Signature
-	Repositories     chan int64
+	Repositories     chan GitResource
 	Gists            chan string
 	Comments         chan string
 	Context          context.Context
@@ -163,7 +163,7 @@ func GetSession() *Session {
 	sessionSync.Do(func() {
 		session = &Session{
 			Context:      context.Background(),
-			Repositories: make(chan int64, 1000),
+			Repositories: make(chan GitResource, 1000),
 			Gists:        make(chan string, 100),
 			Comments:     make(chan string, 1000),
 		}

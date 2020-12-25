@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/eth0izzle/shhgit/core"
 	"github.com/fatih/color"
@@ -31,13 +33,17 @@ func ProcessRepositories() {
 
 	for i := 0; i < threadNum; i++ {
 		go func(tid int) {
-
 			for {
-				repositoryId := <-session.Repositories
-				repo, err := core.GetRepository(session, repositoryId)
+				timeout := time.Duration(*session.Options.CloneRepositoryTimeout) * time.Second
+				_, cancel := context.WithTimeout(context.Background(), timeout)
+				defer cancel()
+
+				repository := <-session.Repositories
+
+				repo, err := core.GetRepository(session, repository.Id)
 
 				if err != nil {
-					session.Log.Warn("Failed to retrieve repository %d: %s", repositoryId, err)
+					session.Log.Warn("Failed to retrieve repository %d: %s", repository.Id, err)
 					continue
 				}
 
@@ -45,7 +51,7 @@ func ProcessRepositories() {
 					uint(repo.GetStargazersCount()) >= *session.Options.MinimumStars &&
 					uint(repo.GetSize()) < *session.Options.MaximumRepositorySize {
 
-					processRepositoryOrGist(repo.GetCloneURL(), repo.GetStargazersCount(), core.GITHUB_SOURCE)
+					processRepositoryOrGist(repo.GetCloneURL(), repository.Ref, repo.GetStargazersCount(), core.GITHUB_SOURCE)
 				}
 			}
 		}(i)
@@ -59,7 +65,7 @@ func ProcessGists() {
 		go func(tid int) {
 			for {
 				gistUrl := <-session.Gists
-				processRepositoryOrGist(gistUrl, -1, core.GIST_SOURCE)
+				processRepositoryOrGist(gistUrl, "", -1, core.GIST_SOURCE)
 			}
 		}(i)
 	}
@@ -83,13 +89,13 @@ func ProcessComments() {
 	}
 }
 
-func processRepositoryOrGist(url string, stars int, source core.GitResourceType) {
+func processRepositoryOrGist(url string, ref string, stars int, source core.GitResourceType) {
 	var (
 		matchedAny bool = false
 	)
 
 	dir := core.GetTempDir(core.GetHash(url))
-	_, err := core.CloneRepository(session, url, dir)
+	_, err := core.CloneRepository(session, url, ref, dir)
 
 	if err != nil {
 		session.Log.Debug("[%s] Cloning failed: %s", url, err.Error())
@@ -97,7 +103,7 @@ func processRepositoryOrGist(url string, stars int, source core.GitResourceType)
 		return
 	}
 
-	session.Log.Debug("[%s] Cloning in to %s", url, strings.Replace(dir, *session.Options.TempDirectory, "", -1))
+	session.Log.Debug("[%s] Cloning %s in to %s", url, ref, strings.Replace(dir, *session.Options.TempDirectory, "", -1))
 	matchedAny = checkSignatures(dir, url, stars, source)
 	if !matchedAny {
 		os.RemoveAll(dir)
