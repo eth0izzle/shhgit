@@ -1,7 +1,5 @@
 github_access_tokens:
-  - '4388b2658182341d61c1506bdbf249d49d5f2acc'
-  - 'dcefdee459ea41ffd80b0372f056ca1a7aec49a1'
-  - '26e3f7340239e28acf3a2a1b79736f6f5d81ee9a'
+  - ''
 webhook: '' # URL to which the payload is POSTed
 
 # This default payload will work for Slack and MatterMost.
