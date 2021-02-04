@@ -5,7 +5,7 @@
 
 ![Go](https://github.com/eth0izzle/shhgit/workflows/Go/badge.svg) ![](https://img.shields.io/docker/cloud/build/eth0izzle/shhgit.svg)
 
-## **[shhgit live! Find secrets right from your browser.](https://shhgit.darkport.co.uk)**
+## **[Interested in using shhgit to secure your enterprise?](https://shhgit.darkport.co.uk)**
 
 <a href="https://shhgit.darkport.co.uk"><img src="https://user-images.githubusercontent.com/97316/90076719-5ee09c80-dcf8-11ea-87c7-c5f3b454f246.gif" /></a>
 </p>
