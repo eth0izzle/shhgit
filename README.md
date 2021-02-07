@@ -12,7 +12,7 @@
 
 Accidentally leaking secrets — usernames and passwords, API tokens, or private keys — in a public code repository is a developers and security teams worst nightmare. Fraudsters constantly scan public code repositories for these secrets to gain a foothold in to systems. Code is more connected than ever so often these secrets provide access to private and sensitive data — cloud infrastructures, database servers, payment gateways, and file storage systems to name a few.
 
-shhgit scans your code repositories, finds any secrets, and notifies you.
+shhgit can constantly scan your code repositories to find and alert you of these secrets. 
 
 ## Installation
 
