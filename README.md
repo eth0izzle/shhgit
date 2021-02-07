@@ -1,24 +1,22 @@
 <p align="center">
-<img src="https://user-images.githubusercontent.com/97316/90076675-47a1af00-dcf8-11ea-9872-7fdf02736a6c.png" height="30%" width="30%" />
+<img src="https://www.shhgit.com/static/f610e0a0a92ba76f27ef622dc0cd9073/e04ce/icon.png" height="30%" width="30%" />
 
-## **shhgit finds committed secrets and sensitive files across GitHub, Gists, GitLab and BitBucket or your local repositories in real time.**
+## **shhgit helps secure forward-thinking development, operations, and security teams by finding secrets across their code before it leads to a security breach.**
 
 ![Go](https://github.com/eth0izzle/shhgit/workflows/Go/badge.svg) ![](https://img.shields.io/docker/cloud/build/eth0izzle/shhgit.svg)
 
-## **[Interested in using shhgit to secure your enterprise?](https://shhgit.darkport.co.uk)**
+## **NEW: [Interested in using shhgit to secure your enterprise?](https://www.shhgit.com)**
 
-<a href="https://shhgit.darkport.co.uk"><img src="https://user-images.githubusercontent.com/97316/90076719-5ee09c80-dcf8-11ea-87c7-c5f3b454f246.gif" /></a>
+<a href="https://www.shhgit.com?utm_source=github&utm_medium=opensource&utm_campaign=readme"><img src="https://user-images.githubusercontent.com/97316/90076719-5ee09c80-dcf8-11ea-87c7-c5f3b454f246.gif" /></a>
 </p>
 
-Finding secrets in GitHub is nothing new. There are many great tools available to help with this depending on which side of the fence you sit. On the adversarial side, popular tools such as <a href="https://github.com/michenriksen/gitrob">gitrob</a> and <a href="https://github.com/dxa4481/truffleHog">truggleHog</a> focus on digging in to commit history to find secret tokens from specific repositories, users or organisations. On the defensive side, GitHub themselves are actively scanning for secrets through their [token scanning](https://help.github.com/en/articles/about-token-scanning) project. Their objective is to identify secret tokens within committed code in real-time and notify the service provider to action. So in theory if any AWS secret keys are committed to GitHub, Amazon will be notified and automatically revoke them.
+Accidentally leaking secrets — usernames and passwords, API tokens, or private keys — in a public code repository is a developers and security teams worst nightmare. Fraudsters constantly scan public code repositories for these secrets to gain a foothold in to systems. Code is more connected than ever so often these secrets provide access to private and sensitive data — cloud infrastructures, database servers, payment gateways, and file storage systems to name a few.
 
-I developed shhgit to raise awareness and bring to life the prevalence of this issue. I hope GitHub will do more to prevent bad actors using the treasure trove of information across the platform. I don't know the inner-workings of their [token scanning](https://help.github.com/en/articles/about-token-scanning) project but delaying the real-time feed API until the pipeline has completed and posing SLAs on the providers seems like a step in the right direction.
-
-**_Use shhgit in your bug bounty or CI pipelines? Say thanks by [sponsoring me via GitHub](https://github.com/sponsors/eth0izzle)._**
+shhgit scans your code repositories, finds any secrets, and notifies you.
 
 ## Installation
 
-You have two options. I'd recommend the first as it will give you access to the [shhgit web interface](https://shhgit.darkport.co.uk/). Use the second option if you just want the command line interface.
+You have two options. I'd recommend the first as it will give you access to the shhgit live web interface. Use the second option if you just want the command line interface.
 
 ### via Docker
 
