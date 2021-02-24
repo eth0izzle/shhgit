@@ -137,19 +137,21 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 		} else {
 			for _, signature := range session.Signatures {
 				if matched, part := signature.Match(file); matched {
-					matchedAny = true
-
 					if part == core.PartContents {
-						if matches = signature.GetContentsMatches(file.Contents); matches != nil {
+						if matches = signature.GetContentsMatches(file.Contents); len(matches) > 0 {
 							count := len(matches)
 							m := strings.Join(matches, ", ")
 							publish(&MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
+							matchedAny = true
+
 							session.Log.Important("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString(signature.Name()), relativeFileName, color.YellowString(m))
 							session.WriteToCsv([]string{url, signature.Name(), relativeFileName, m})
 						}
 					} else {
 						if *session.Options.PathChecks {
 							publish(&MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
+							matchedAny = true
+
 							session.Log.Important("[%s] Matching file %s for %s", url, color.YellowString(relativeFileName), color.GreenString(signature.Name()))
 							session.WriteToCsv([]string{url, signature.Name(), relativeFileName, ""})
 						}
@@ -174,6 +176,8 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 
 										if !blacklistedMatch {
 											publish(&MatchEvent{Source: source, Url: url, Matches: []string{line}, Signature: "High entropy string", File: relativeFileName, Stars: stars})
+											matchedAny = true
+
 											session.Log.Important("[%s] Potential secret in %s = %s", url, color.YellowString(relativeFileName), color.GreenString(line))
 											session.WriteToCsv([]string{url, "High entropy string", relativeFileName, line})
 										}
