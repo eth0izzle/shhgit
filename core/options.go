@@ -40,7 +40,7 @@ func ParseOptions() (*Options, error) {
 		TempDirectory:          flag.String("temp-directory", filepath.Join(os.TempDir(), Name), "Directory to process and store repositories/matches"),
 		CsvPath:                flag.String("csv-path", "", "CSV file path to log found secrets to. Leave blank to disable"),
 		SearchQuery:            flag.String("search-query", "", "Specify a search string to ignore signatures and filter on files containing this string (regex compatible)"),
-		Local:                  flag.String("local", "", "Specify local directory (absolute path) which to scan. Scans only given directory recursively. No need to have Githib tokens with local run."),
+		Local:                  flag.String("local", "", "Specify local directory (absolute path) which to scan. Scans only given directory recursively. No need to have GitHub tokens with local run."),
 		Live:                   flag.String("live", "", "Your shhgit live endpoint"),
 		ConfigPath:             flag.String("config-path", "", "Searches for config.yaml from given directory. If not set, tries to find if from shhgit binary's and current directory"),
 	}
