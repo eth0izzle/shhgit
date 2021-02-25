@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://www.shhgit.com/static/f610e0a0a92ba76f27ef622dc0cd9073/e04ce/icon.png" height="30%" width="30%" />
+<img src="./images/logo.png" height="30%" width="30%" />
 
 ## **shhgit helps secure forward-thinking development, operations, and security teams by finding secrets across their code before it leads to a security breach.**
 
