@@ -15,7 +15,6 @@ type MatchFile struct {
 }
 
 func NewMatchFile(path string) MatchFile {
-	path = filepath.ToSlash(path)
 	_, filename := filepath.Split(path)
 	extension := filepath.Ext(path)
 	contents, _ := ioutil.ReadFile(path)
