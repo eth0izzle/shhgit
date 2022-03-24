@@ -23,6 +23,62 @@ type Options struct {
 	Local                  *string
 	Live                   *string
 	ConfigPath             *string
+	ConfigName             *string
+}
+
+func (o *Options) Merge(new *Options) {
+	if new.Threads != nil {
+		o.Threads = new.Threads
+	}
+	if new.Silent != nil {
+		o.Silent = new.Silent
+	}
+	if new.Debug != nil {
+		o.Debug = new.Debug
+	}
+	if new.MaximumRepositorySize != nil {
+		o.MaximumRepositorySize = new.MaximumRepositorySize
+	}
+	if new.MaximumFileSize != nil {
+		o.MaximumFileSize = new.MaximumFileSize
+	}
+	if new.CloneRepositoryTimeout != nil {
+		o.CloneRepositoryTimeout = new.CloneRepositoryTimeout
+	}
+	if new.EntropyThreshold != nil {
+		o.EntropyThreshold = new.EntropyThreshold
+	}
+	if new.MinimumStars != nil {
+		o.MinimumStars = new.MinimumStars
+	}
+	if new.PathChecks != nil {
+		o.PathChecks = new.PathChecks
+	}
+	if new.ProcessGists != nil {
+		o.ProcessGists = new.ProcessGists
+	}
+	if new.TempDirectory != nil {
+		o.TempDirectory = new.TempDirectory
+	}
+	if new.CsvPath != nil {
+		o.CsvPath = new.CsvPath
+	}
+	if new.SearchQuery != nil {
+		o.SearchQuery = new.SearchQuery
+	}
+	if new.Local != nil {
+		o.Local = new.Local
+	}
+	if new.Live != nil {
+		o.Live = new.Live
+	}
+	if new.ConfigPath != nil {
+		o.ConfigPath = new.ConfigPath
+	}
+	if new.ConfigName != nil {
+		o.ConfigName = new.ConfigName
+	}
+
 }
 
 func ParseOptions() (*Options, error) {
@@ -44,6 +100,10 @@ func ParseOptions() (*Options, error) {
 		Live:                   flag.String("live", "", "Your shhgit live endpoint"),
 		ConfigPath:             flag.String("config-path", "", "Searches for config.yaml from given directory. If not set, tries to find if from shhgit binary's and current directory"),
 	}
+
+	// Undocumented option
+	configName := "config.yaml"
+	options.ConfigName = &configName
 
 	flag.Parse()
 

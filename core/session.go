@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
 	"runtime"
@@ -32,9 +33,8 @@ type Session struct {
 }
 
 var (
-	session     *Session
-	sessionSync sync.Once
-	err         error
+	session *Session
+	err     error
 )
 
 func (s *Session) Start() {
@@ -159,27 +159,37 @@ func (s *Session) WriteToCsv(line []string) {
 	s.CsvWriter.Flush()
 }
 
+func NewSession(*Options) (*Session, error) {
+	session = &Session{
+		Context:      context.Background(),
+		Repositories: make(chan GitResource, 1000),
+		Gists:        make(chan string, 100),
+		Comments:     make(chan string, 1000),
+	}
+
+	popts, err := ParseOptions()
+	if err != nil {
+		return nil, fmt.Errorf("parse options: %w", err)
+	}
+	session.Options = popts
+
+	sc, err := ParseConfig(session.Options)
+	if err != nil {
+		return nil, fmt.Errorf("parse config: %w", err)
+	}
+	session.Config = sc
+	session.Start()
+
+	return session, nil
+}
+
 func GetSession() *Session {
-	sessionSync.Do(func() {
-		session = &Session{
-			Context:      context.Background(),
-			Repositories: make(chan GitResource, 1000),
-			Gists:        make(chan string, 100),
-			Comments:     make(chan string, 1000),
+	if session == nil {
+		session, err = NewSession(nil)
+		if err != nil {
+			log.Fatalf("NewSession failed: %v", err)
 		}
-
-		if session.Options, err = ParseOptions(); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		if session.Config, err = ParseConfig(session.Options); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		session.Start()
-	})
+	}
 
 	return session
 }
