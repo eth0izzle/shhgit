@@ -20,6 +20,7 @@ type Signature interface {
 	Name() string
 	Match(MatchFile) (bool, string)
 	GetContentsMatches(*Session, []byte) []string
+	StringSubMatches(*Session, []byte) [][]string
 }
 
 type SimpleSignature struct {
@@ -61,6 +62,10 @@ func (s SimpleSignature) GetContentsMatches(sess *Session, contents []byte) []st
 	return nil
 }
 
+func (s SimpleSignature) StringSubMatches(sess *Session, contents []byte) [][]string {
+	return nil
+}
+
 func (s SimpleSignature) Name() string {
 	return s.name
 }
@@ -99,6 +104,27 @@ func (s PatternSignature) GetContentsMatches(sess *Session, contents []byte) []s
 
 		for _, blacklistedString := range sess.Config.BlacklistedStrings {
 			if strings.Contains(strings.ToLower(match), strings.ToLower(blacklistedString)) {
+				blacklistedMatch = true
+			}
+		}
+
+		if !blacklistedMatch {
+			matches = append(matches, match)
+		}
+	}
+
+	return matches
+}
+
+func (s PatternSignature) StringSubMatches(sess *Session, contents []byte) [][]string {
+	matches := [][]string{}
+
+	for _, match := range s.match.FindAllStringSubmatch(string(contents), -1) {
+		fullMatch := string(match[0])
+		blacklistedMatch := false
+
+		for _, blacklistedString := range sess.Config.BlacklistedStrings {
+			if strings.Contains(strings.ToLower(fullMatch), strings.ToLower(blacklistedString)) {
 				blacklistedMatch = true
 			}
 		}

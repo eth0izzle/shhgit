@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -252,7 +253,8 @@ func main() {
 	})
 
 	if err != nil {
-		s.Log.Fatal("new session: %v", err)
+		fmt.Printf("Failed to create session: %v\n", err)
+		os.Exit(1)
 	}
 
 	s.Log.Info(color.HiBlueString(core.Banner))
