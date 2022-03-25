@@ -18,8 +18,8 @@ const (
 
 type Signature interface {
 	Name() string
-	Match(file MatchFile) (bool, string)
-	GetContentsMatches(contents []byte) []string
+	Match(MatchFile) (bool, string)
+	GetContentsMatches(*Session, []byte) []string
 }
 
 type SimpleSignature struct {
@@ -57,7 +57,7 @@ func (s SimpleSignature) Match(file MatchFile) (bool, string) {
 	return (s.match == *haystack), matchPart
 }
 
-func (s SimpleSignature) GetContentsMatches(contents []byte) []string {
+func (s SimpleSignature) GetContentsMatches(sess *Session, contents []byte) []string {
 	return nil
 }
 
@@ -90,14 +90,14 @@ func (s PatternSignature) Match(file MatchFile) (bool, string) {
 	return s.match.MatchString(*haystack), matchPart
 }
 
-func (s PatternSignature) GetContentsMatches(contents []byte) []string {
+func (s PatternSignature) GetContentsMatches(sess *Session, contents []byte) []string {
 	matches := make([]string, 0)
 
 	for _, match := range s.match.FindAllSubmatch(contents, -1) {
 		match := string(match[0])
 		blacklistedMatch := false
 
-		for _, blacklistedString := range session.Config.BlacklistedStrings {
+		for _, blacklistedString := range sess.Config.BlacklistedStrings {
 			if strings.Contains(strings.ToLower(match), strings.ToLower(blacklistedString)) {
 				blacklistedMatch = true
 			}

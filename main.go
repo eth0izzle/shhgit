@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"flag"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -17,6 +18,26 @@ import (
 	"github.com/fatih/color"
 )
 
+var (
+	threadsFlag      = flag.Int("threads", 0, "Number of concurrent threads (default number of logical CPUs)")
+	silentFlag       = flag.Bool("silent", false, "Suppress all output except for errors")
+	debugFlag        = flag.Bool("debug", false, "Print debugging information")
+	maxRepoFlag      = flag.Uint("maximum-repository-size", 5120, "Maximum repository size to process in KB")
+	maxFileSizeFlag  = flag.Uint("maximum-file-size", 256, "Maximum file size to process in KB")
+	cloneTimeoutFlag = flag.Uint("clone-repository-timeout", 10, "Maximum time it should take to clone a repository in seconds. Increase this if you have a slower connection")
+	entropyFlag      = flag.Float64("entropy-threshold", 5.0, "Set to 0 to disable entropy checks")
+	minStarsFlag     = flag.Uint("minimum-stars", 0, "Only process repositories with this many stars. Default 0 will ignore star count")
+	pathChecksFlag   = flag.Bool("path-checks", true, "Set to false to disable checking of filepaths, i.e. just match regex patterns of file contents")
+	gistsFlag        = flag.Bool("process-gists", true, "Will watch and process Gists. Set to false to disable.")
+	tempDirFlag      = flag.String("temp-directory", filepath.Join(os.TempDir(), core.Name), "Directory to process and store repositories/matches")
+	csvFlag          = flag.String("csv-path", "", "CSV file path to log found secrets to. Leave blank to disable")
+	searchQueryFlag  = flag.String("search-query", "", "Specify a search string to ignore signatures and filter on files containing this string (regex compatible)")
+	localFlag        = flag.String("local", "", "Specify local directory (absolute path) which to scan. Scans only given directory recursively. No need to have GitHub tokens with local run.")
+	liveFlag         = flag.String("live", "", "Your shhgit live endpoint")
+	configPathFlag   = flag.String("config-path", "", "Searches for config.yaml from given directory. If not set, tries to find if from shhgit binary's and current directory")
+	configNameFlag   = flag.String("config-name", "config.yaml", "filename to search for")
+)
+
 type MatchEvent struct {
 	Url       string
 	Matches   []string
@@ -26,62 +47,62 @@ type MatchEvent struct {
 	Source    core.GitResourceType
 }
 
-var session = core.GetSession()
+var session *core.Session
 
-func ProcessRepositories() {
-	threadNum := *session.Options.Threads
+func ProcessRepositories(s *core.Session) {
+	threadNum := *s.Options.Threads
 
 	for i := 0; i < threadNum; i++ {
 		go func(tid int) {
 			for {
-				timeout := time.Duration(*session.Options.CloneRepositoryTimeout) * time.Second
+				timeout := time.Duration(*s.Options.CloneRepositoryTimeout) * time.Second
 				_, cancel := context.WithTimeout(context.Background(), timeout)
 				defer cancel()
 
-				repository := <-session.Repositories
+				repository := <-s.Repositories
 
 				repo, err := core.GetRepository(session, repository.Id)
 
 				if err != nil {
-					session.Log.Warn("Failed to retrieve repository %d: %s", repository.Id, err)
+					s.Log.Warn("Failed to retrieve repository %d: %s", repository.Id, err)
 					continue
 				}
 
 				if repo.GetPermissions()["pull"] &&
-					uint(repo.GetStargazersCount()) >= *session.Options.MinimumStars &&
-					uint(repo.GetSize()) < *session.Options.MaximumRepositorySize {
+					uint(repo.GetStargazersCount()) >= *s.Options.MinimumStars &&
+					uint(repo.GetSize()) < *s.Options.MaximumRepositorySize {
 
-					processRepositoryOrGist(repo.GetCloneURL(), repository.Ref, repo.GetStargazersCount(), core.GITHUB_SOURCE)
+					processRepositoryOrGist(s, repo.GetCloneURL(), repository.Ref, repo.GetStargazersCount(), core.GITHUB_SOURCE)
 				}
 			}
 		}(i)
 	}
 }
 
-func ProcessGists() {
-	threadNum := *session.Options.Threads
+func ProcessGists(s *core.Session) {
+	threadNum := *s.Options.Threads
 
 	for i := 0; i < threadNum; i++ {
 		go func(tid int) {
 			for {
-				gistUrl := <-session.Gists
-				processRepositoryOrGist(gistUrl, "", -1, core.GIST_SOURCE)
+				gistUrl := <-s.Gists
+				processRepositoryOrGist(s, gistUrl, "", -1, core.GIST_SOURCE)
 			}
 		}(i)
 	}
 }
 
-func ProcessComments() {
-	threadNum := *session.Options.Threads
+func ProcessComments(s *core.Session) {
+	threadNum := *s.Options.Threads
 
 	for i := 0; i < threadNum; i++ {
 		go func(tid int) {
 			for {
-				commentBody := <-session.Comments
-				dir := core.GetTempDir(core.GetHash(commentBody))
+				commentBody := <-s.Comments
+				dir := core.GetTempDir(s, core.GetHash(commentBody))
 				ioutil.WriteFile(filepath.Join(dir, "comment.ignore"), []byte(commentBody), 0644)
 
-				if !checkSignatures(dir, "ISSUE", 0, core.GITHUB_COMMENT) {
+				if !checkSignatures(s, dir, "ISSUE", 0, core.GITHUB_COMMENT) {
 					os.RemoveAll(dir)
 				}
 			}
@@ -89,41 +110,42 @@ func ProcessComments() {
 	}
 }
 
-func processRepositoryOrGist(url string, ref string, stars int, source core.GitResourceType) {
+func processRepositoryOrGist(s *core.Session, url string, ref string, stars int, source core.GitResourceType) {
 	var (
 		matchedAny bool = false
 	)
 
-	dir := core.GetTempDir(core.GetHash(url))
+	dir := core.GetTempDir(s, core.GetHash(url))
 	_, err := core.CloneRepository(session, url, ref, dir)
 
 	if err != nil {
-		session.Log.Debug("[%s] Cloning failed: %s", url, err.Error())
+		s.Log.Debug("[%s] Cloning failed: %s", url, err.Error())
 		os.RemoveAll(dir)
 		return
 	}
 
-	session.Log.Debug("[%s] Cloning %s in to %s", url, ref, strings.Replace(dir, *session.Options.TempDirectory, "", -1))
-	matchedAny = checkSignatures(dir, url, stars, source)
+	s.Log.Debug("[%s] Cloning %s in to %s", url, ref, strings.Replace(dir, *s.Options.TempDirectory, "", -1))
+	matchedAny = checkSignatures(s, dir, url, stars, source)
 	if !matchedAny {
 		os.RemoveAll(dir)
 	}
 }
 
-func checkSignatures(dir string, url string, stars int, source core.GitResourceType) (matchedAny bool) {
-	for _, file := range core.GetMatchingFiles(dir) {
+func checkSignatures(s *core.Session, dir string, url string, stars int, source core.GitResourceType) (matchedAny bool) {
+
+	for _, file := range core.GetMatchingFiles(s, dir) {
 		var (
 			matches          []string
 			relativeFileName string
 		)
-		if strings.Contains(dir, *session.Options.TempDirectory) {
-			relativeFileName = strings.Replace(file.Path, *session.Options.TempDirectory, "", -1)
+		if strings.Contains(dir, *s.Options.TempDirectory) {
+			relativeFileName = strings.Replace(file.Path, *s.Options.TempDirectory, "", -1)
 		} else {
 			relativeFileName = strings.Replace(file.Path, dir, "", -1)
 		}
 
-		if *session.Options.SearchQuery != "" {
-			queryRegex := regexp.MustCompile(*session.Options.SearchQuery)
+		if *s.Options.SearchQuery != "" {
+			queryRegex := regexp.MustCompile(*s.Options.SearchQuery)
 			for _, match := range queryRegex.FindAllSubmatch(file.Contents, -1) {
 				matches = append(matches, string(match[0]))
 			}
@@ -131,32 +153,32 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 			if matches != nil {
 				count := len(matches)
 				m := strings.Join(matches, ", ")
-				session.Log.Important("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString("Search Query"), relativeFileName, color.YellowString(m))
-				session.WriteToCsv([]string{url, "Search Query", relativeFileName, m})
+				s.Log.Important("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString("Search Query"), relativeFileName, color.YellowString(m))
+				s.WriteToCsv([]string{url, "Search Query", relativeFileName, m})
 			}
 		} else {
-			for _, signature := range session.Signatures {
+			for _, signature := range s.Signatures {
 				if matched, part := signature.Match(file); matched {
 					if part == core.PartContents {
-						if matches = signature.GetContentsMatches(file.Contents); len(matches) > 0 {
+						if matches = signature.GetContentsMatches(s, file.Contents); len(matches) > 0 {
 							count := len(matches)
 							m := strings.Join(matches, ", ")
-							publish(&MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
+							publish(s, &MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
 							matchedAny = true
 
-							session.Log.Important("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString(signature.Name()), relativeFileName, color.YellowString(m))
-							session.WriteToCsv([]string{url, signature.Name(), relativeFileName, m})
+							s.Log.Important("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString(signature.Name()), relativeFileName, color.YellowString(m))
+							s.WriteToCsv([]string{url, signature.Name(), relativeFileName, m})
 						}
 					} else {
-						if *session.Options.PathChecks {
-							publish(&MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
+						if *s.Options.PathChecks {
+							publish(s, &MatchEvent{Source: source, Url: url, Matches: matches, Signature: signature.Name(), File: relativeFileName, Stars: stars})
 							matchedAny = true
 
-							session.Log.Important("[%s] Matching file %s for %s", url, color.YellowString(relativeFileName), color.GreenString(signature.Name()))
-							session.WriteToCsv([]string{url, signature.Name(), relativeFileName, ""})
+							s.Log.Important("[%s] Matching file %s for %s", url, color.YellowString(relativeFileName), color.GreenString(signature.Name()))
+							s.WriteToCsv([]string{url, signature.Name(), relativeFileName, ""})
 						}
 
-						if *session.Options.EntropyThreshold > 0 && file.CanCheckEntropy() {
+						if *s.Options.EntropyThreshold > 0 && file.CanCheckEntropy(s) {
 							scanner := bufio.NewScanner(bytes.NewReader(file.Contents))
 
 							for scanner.Scan() {
@@ -165,21 +187,21 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 								if len(line) > 6 && len(line) < 100 {
 									entropy := core.GetEntropy(line)
 
-									if entropy >= *session.Options.EntropyThreshold {
+									if entropy >= *s.Options.EntropyThreshold {
 										blacklistedMatch := false
 
-										for _, blacklistedString := range session.Config.BlacklistedStrings {
+										for _, blacklistedString := range s.Config.BlacklistedStrings {
 											if strings.Contains(strings.ToLower(line), strings.ToLower(blacklistedString)) {
 												blacklistedMatch = true
 											}
 										}
 
 										if !blacklistedMatch {
-											publish(&MatchEvent{Source: source, Url: url, Matches: []string{line}, Signature: "High entropy string", File: relativeFileName, Stars: stars})
+											publish(s, &MatchEvent{Source: source, Url: url, Matches: []string{line}, Signature: "High entropy string", File: relativeFileName, Stars: stars})
 											matchedAny = true
 
-											session.Log.Important("[%s] Potential secret in %s = %s", url, color.YellowString(relativeFileName), color.GreenString(line))
-											session.WriteToCsv([]string{url, "High entropy string", relativeFileName, line})
+											s.Log.Important("[%s] Potential secret in %s = %s", url, color.YellowString(relativeFileName), color.GreenString(line))
+											s.WriteToCsv([]string{url, "High entropy string", relativeFileName, line})
 										}
 									}
 								}
@@ -190,51 +212,77 @@ func checkSignatures(dir string, url string, stars int, source core.GitResourceT
 			}
 		}
 
-		if !matchedAny && len(*session.Options.Local) <= 0 {
+		if !matchedAny && len(*s.Options.Local) <= 0 {
 			os.Remove(file.Path)
 		}
 	}
 	return
 }
 
-func publish(event *MatchEvent) {
+func publish(s *core.Session, event *MatchEvent) {
 	// todo: implement a modular plugin system to handle the various outputs (console, live, csv, webhooks, etc)
-	if len(*session.Options.Live) > 0 {
+	if len(*s.Options.Live) > 0 {
 		data, _ := json.Marshal(event)
-		http.Post(*session.Options.Live, "application/json", bytes.NewBuffer(data))
+		http.Post(*s.Options.Live, "application/json", bytes.NewBuffer(data))
 	}
 }
 
 func main() {
-	session.Log.Info(color.HiBlueString(core.Banner))
-	session.Log.Info("\t%s\n", color.HiCyanString(core.Author))
-	session.Log.Info("[*] Loaded %s signatures. Using %s worker threads. Temp work dir: %s\n", color.BlueString("%d", len(session.Signatures)), color.BlueString("%d", *session.Options.Threads), color.BlueString(*session.Options.TempDirectory))
+	flag.Parse()
+	ctx := context.Background()
 
-	if len(*session.Options.Local) > 0 {
-		session.Log.Info("[*] Scanning local directory: %s - skipping public repository checks...", color.BlueString(*session.Options.Local))
+	s, err := core.NewSession(ctx, &core.Options{
+		Threads:                threadsFlag,
+		Silent:                 silentFlag,
+		Debug:                  debugFlag,
+		MaximumRepositorySize:  maxRepoFlag,
+		MaximumFileSize:        maxFileSizeFlag,
+		CloneRepositoryTimeout: cloneTimeoutFlag,
+		EntropyThreshold:       entropyFlag,
+		MinimumStars:           minStarsFlag,
+		PathChecks:             pathChecksFlag,
+		ProcessGists:           gistsFlag,
+		TempDirectory:          tempDirFlag,
+		CsvPath:                csvFlag,
+		SearchQuery:            searchQueryFlag,
+		Local:                  localFlag,
+		Live:                   liveFlag,
+		ConfigPath:             configPathFlag,
+		ConfigName:             configNameFlag,
+	})
+
+	if err != nil {
+		s.Log.Fatal("new session: %v", err)
+	}
+
+	s.Log.Info(color.HiBlueString(core.Banner))
+	s.Log.Info("\t%s\n", color.HiCyanString(core.Author))
+	s.Log.Info("[*] Loaded %s signatures. Using %s worker threads. Temp work dir: %s\n", color.BlueString("%d", len(s.Signatures)), color.BlueString("%d", *s.Options.Threads), color.BlueString(*s.Options.TempDirectory))
+
+	if s.Options.Local != nil {
+		s.Log.Info("[*] Scanning local directory: %s - skipping public repository checks...", color.BlueString(*s.Options.Local))
 		rc := 0
-		if checkSignatures(*session.Options.Local, *session.Options.Local, -1, core.LOCAL_SOURCE) {
+		if checkSignatures(s, *s.Options.Local, *s.Options.Local, -1, core.LOCAL_SOURCE) {
 			rc = 1
 		} else {
-			session.Log.Info("[*] No matching secrets found in %s!", color.BlueString(*session.Options.Local))
+			s.Log.Info("[*] No matching secrets found in %s!", color.BlueString(*s.Options.Local))
 		}
 		os.Exit(rc)
-	} else {
-		if *session.Options.SearchQuery != "" {
-			session.Log.Important("Search Query '%s' given. Only returning matching results.", *session.Options.SearchQuery)
-		}
-
-		go core.GetRepositories(session)
-		go ProcessRepositories()
-		go ProcessComments()
-
-		if *session.Options.ProcessGists {
-			go core.GetGists(session)
-			go ProcessGists()
-		}
-
-		spinny := core.ShowSpinner()
-		select {}
-		spinny()
 	}
+	if *s.Options.SearchQuery != "" {
+		s.Log.Important("Search Query '%s' given. Only returning matching results.", *s.Options.SearchQuery)
+	}
+
+	go core.GetRepositories(s)
+	go ProcessRepositories(s)
+	go ProcessComments(s)
+
+	if *s.Options.ProcessGists {
+		go core.GetGists(s)
+		go ProcessGists(s)
+	}
+
+	spinny := core.ShowSpinner()
+	select {}
+	spinny()
 }

@@ -32,11 +32,6 @@ type Session struct {
 	CsvWriter        *csv.Writer
 }
 
-var (
-	session *Session
-	err     error
-)
-
 func (s *Session) Start() {
 	rand.Seed(time.Now().Unix())
 
@@ -48,7 +43,7 @@ func (s *Session) Start() {
 }
 
 func (s *Session) InitLogger() {
-	s.Log = &Logger{}
+	s.Log = &Logger{s: s}
 	s.Log.SetDebug(*s.Options.Debug)
 	s.Log.SetSilent(*s.Options.Silent)
 }
@@ -141,7 +136,9 @@ func (s *Session) InitCsvWriter() {
 	}
 
 	file, err := os.OpenFile(*s.Options.CsvPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	LogIfError("Could not create/open CSV file", err)
+	if err != nil {
+		s.Log.Error("Could not create/open CSV file: %v", err)
+	}
 
 	s.CsvWriter = csv.NewWriter(file)
 
@@ -159,37 +156,24 @@ func (s *Session) WriteToCsv(line []string) {
 	s.CsvWriter.Flush()
 }
 
-func NewSession(*Options) (*Session, error) {
-	session = &Session{
-		Context:      context.Background(),
+func NewSession(ctx context.Context, o *Options) (*Session, error) {
+	s := &Session{
+		// TODO: Remove (contexts should not be embedded in structs)
+		Context:      ctx,
 		Repositories: make(chan GitResource, 1000),
 		Gists:        make(chan string, 100),
 		Comments:     make(chan string, 1000),
+		Options:      &DefaultOptions,
 	}
 
-	popts, err := ParseOptions()
-	if err != nil {
-		return nil, fmt.Errorf("parse options: %w", err)
-	}
-	session.Options = popts
+	s.Options.Merge(o)
+	log.Printf("options: %s", *s.Options.ConfigName)
 
-	sc, err := ParseConfig(session.Options)
+	sc, err := ParseConfig(s.Options)
 	if err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
-	session.Config = sc
-	session.Start()
-
-	return session, nil
-}
-
-func GetSession() *Session {
-	if session == nil {
-		session, err = NewSession(nil)
-		if err != nil {
-			log.Fatalf("NewSession failed: %v", err)
-		}
-	}
-
-	return session
+	s.Config = sc
+	s.Start()
+	return s, nil
 }
