@@ -19,17 +19,17 @@ import (
 )
 
 var (
-	threadsFlag      = flag.Int("threads", 0, "Number of concurrent threads (default number of logical CPUs)")
-	silentFlag       = flag.Bool("silent", false, "Suppress all output except for errors")
-	debugFlag        = flag.Bool("debug", false, "Print debugging information")
-	maxRepoFlag      = flag.Uint("maximum-repository-size", 5120, "Maximum repository size to process in KB")
-	maxFileSizeFlag  = flag.Uint("maximum-file-size", 256, "Maximum file size to process in KB")
-	cloneTimeoutFlag = flag.Uint("clone-repository-timeout", 10, "Maximum time it should take to clone a repository in seconds. Increase this if you have a slower connection")
-	entropyFlag      = flag.Float64("entropy-threshold", 5.0, "Set to 0 to disable entropy checks")
-	minStarsFlag     = flag.Uint("minimum-stars", 0, "Only process repositories with this many stars. Default 0 will ignore star count")
-	pathChecksFlag   = flag.Bool("path-checks", true, "Set to false to disable checking of filepaths, i.e. just match regex patterns of file contents")
-	gistsFlag        = flag.Bool("process-gists", true, "Will watch and process Gists. Set to false to disable.")
-	tempDirFlag      = flag.String("temp-directory", filepath.Join(os.TempDir(), core.Name), "Directory to process and store repositories/matches")
+	threadsFlag      = flag.Int("threads", core.DefaultThreads, "Number of concurrent threads (default number of logical CPUs)")
+	silentFlag       = flag.Bool("silent", core.DefaultSilent, "Suppress all output except for errors")
+	debugFlag        = flag.Bool("debug", core.DefaultDebug, "Print debugging information")
+	maxRepoFlag      = flag.Uint("maximum-repository-size", core.DefaultMaximumRepositorySize, "Maximum repository size to process in KB")
+	maxFileSizeFlag  = flag.Uint("maximum-file-size", core.DefaultMaximumFileSize, "Maximum file size to process in KB")
+	cloneTimeoutFlag = flag.Uint("clone-repository-timeout", core.DefaultCloneRepositoryTimeout, "Maximum time it should take to clone a repository in seconds. Increase this if you have a slower connection")
+	entropyFlag      = flag.Float64("entropy-threshold", core.DefaultEntropy, "Set to 0 to disable entropy checks")
+	minStarsFlag     = flag.Uint("minimum-stars", core.DefaultMinimumStars, "Only process repositories with this many stars. Default 0 will ignore star count")
+	pathChecksFlag   = flag.Bool("path-checks", core.DefaultPathChecks, "Set to false to disable checking of filepaths, i.e. just match regex patterns of file contents")
+	gistsFlag        = flag.Bool("process-gists", core.DefaultProcessGists, "Will watch and process Gists. Set to false to disable.")
+	tempDirFlag      = flag.String("temp-directory", core.DefaultTempDirectory, "Directory to process and store repositories/matches")
 	csvFlag          = flag.String("csv-path", "", "CSV file path to log found secrets to. Leave blank to disable")
 	searchQueryFlag  = flag.String("search-query", "", "Specify a search string to ignore signatures and filter on files containing this string (regex compatible)")
 	localFlag        = flag.String("local", "", "Specify local directory (absolute path) which to scan. Scans only given directory recursively. No need to have GitHub tokens with local run.")
@@ -243,7 +243,7 @@ func main() {
 		PathChecks:             pathChecksFlag,
 		ProcessGists:           gistsFlag,
 		TempDirectory:          tempDirFlag,
-		CsvPath:                csvFlag,
+		CSVPath:                csvFlag,
 		SearchQuery:            searchQueryFlag,
 		Local:                  localFlag,
 		Live:                   liveFlag,

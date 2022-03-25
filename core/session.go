@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
 	"runtime"
@@ -126,16 +125,16 @@ func (s *Session) InitThreads() {
 }
 
 func (s *Session) InitCsvWriter() {
-	if *s.Options.CsvPath == "" {
+	if *s.Options.CSVPath == "" {
 		return
 	}
 
 	writeHeader := false
-	if !PathExists(*s.Options.CsvPath) {
+	if !PathExists(*s.Options.CSVPath) {
 		writeHeader = true
 	}
 
-	file, err := os.OpenFile(*s.Options.CsvPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(*s.Options.CSVPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		s.Log.Error("Could not create/open CSV file: %v", err)
 	}
@@ -148,7 +147,7 @@ func (s *Session) InitCsvWriter() {
 }
 
 func (s *Session) WriteToCsv(line []string) {
-	if *s.Options.CsvPath == "" {
+	if *s.Options.CSVPath == "" {
 		return
 	}
 
@@ -167,8 +166,6 @@ func NewSession(ctx context.Context, o *Options) (*Session, error) {
 	}
 
 	s.Options.Merge(o)
-	log.Printf("options: %s", *s.Options.ConfigName)
-
 	sc, err := ParseConfig(s.Options)
 	if err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)

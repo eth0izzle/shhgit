@@ -1,5 +1,10 @@
 package core
 
+import (
+	"os"
+	"path/filepath"
+)
+
 type Options struct {
 	Threads                *int
 	Silent                 *bool
@@ -12,7 +17,7 @@ type Options struct {
 	PathChecks             *bool
 	ProcessGists           *bool
 	TempDirectory          *string
-	CsvPath                *string
+	CSVPath                *string
 	SearchQuery            *string
 	Local                  *string
 	Live                   *string
@@ -54,8 +59,8 @@ func (o *Options) Merge(new *Options) {
 	if new.TempDirectory != nil {
 		o.TempDirectory = new.TempDirectory
 	}
-	if new.CsvPath != nil {
-		o.CsvPath = new.CsvPath
+	if new.CSVPath != nil {
+		o.CSVPath = new.CSVPath
 	}
 	if new.SearchQuery != nil {
 		o.SearchQuery = new.SearchQuery
@@ -82,6 +87,12 @@ var (
 	DefaultEntropy                = float64(5.0)
 	DefaultPathChecks             = true
 	DefaultProcessGists           = true
+	DefaultSilent                 = false
+	DefaultMinimumStars           = uint(0)
+	DefaultDebug                  = false
+	DefaultTempDirectory          = filepath.Join(os.TempDir(), Name)
+	DefaultThreads                = 0
+	DefaultCSVPath                = ""
 
 	DefaultOptions = Options{
 		MaximumRepositorySize:  &DefaultMaximumRepositorySize,
@@ -90,5 +101,11 @@ var (
 		EntropyThreshold:       &DefaultEntropy,
 		PathChecks:             &DefaultPathChecks,
 		ProcessGists:           &DefaultProcessGists,
+		TempDirectory:          &DefaultTempDirectory,
+		Silent:                 &DefaultSilent,
+		Debug:                  &DefaultDebug,
+		Threads:                &DefaultThreads,
+		MinimumStars:           &DefaultMinimumStars,
+		CSVPath:                &DefaultCSVPath,
 	}
 )
