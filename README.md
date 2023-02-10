@@ -1,11 +1,11 @@
 <p align="center">
 <img src="./images/logo.png" height="30%" width="30%" />
 
+# 🚨 shhgit is no longer maintained 🚨
+
 ## **shhgit helps secure forward-thinking development, operations, and security teams by finding secrets across their code before it leads to a security breach.**
 
 ![Go](https://github.com/eth0izzle/shhgit/workflows/Go/badge.svg) ![](https://img.shields.io/docker/cloud/build/eth0izzle/shhgit.svg)
-
-## **NEW: [Interested in using shhgit to secure your enterprise?](https://www.shhgit.com)**
 
 <a href="https://www.shhgit.com?utm_source=github&utm_medium=opensource&utm_campaign=readme"><img src="https://user-images.githubusercontent.com/97316/90076719-5ee09c80-dcf8-11ea-87c7-c5f3b454f246.gif" /></a>
 </p>
