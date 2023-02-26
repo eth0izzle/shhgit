@@ -31,12 +31,6 @@ type Session struct {
 	CsvWriter        *csv.Writer
 }
 
-var (
-	session     *Session
-	sessionSync sync.Once
-	err         error
-)
-
 func (s *Session) Start() {
 	rand.Seed(time.Now().Unix())
 
@@ -48,7 +42,7 @@ func (s *Session) Start() {
 }
 
 func (s *Session) InitLogger() {
-	s.Log = &Logger{}
+	s.Log = &Logger{s: s}
 	s.Log.SetDebug(*s.Options.Debug)
 	s.Log.SetSilent(*s.Options.Silent)
 }
@@ -131,17 +125,19 @@ func (s *Session) InitThreads() {
 }
 
 func (s *Session) InitCsvWriter() {
-	if *s.Options.CsvPath == "" {
+	if *s.Options.CSVPath == "" {
 		return
 	}
 
 	writeHeader := false
-	if !PathExists(*s.Options.CsvPath) {
+	if !PathExists(*s.Options.CSVPath) {
 		writeHeader = true
 	}
 
-	file, err := os.OpenFile(*s.Options.CsvPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	LogIfError("Could not create/open CSV file", err)
+	file, err := os.OpenFile(*s.Options.CSVPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		s.Log.Error("Could not create/open CSV file: %v", err)
+	}
 
 	s.CsvWriter = csv.NewWriter(file)
 
@@ -151,7 +147,7 @@ func (s *Session) InitCsvWriter() {
 }
 
 func (s *Session) WriteToCsv(line []string) {
-	if *s.Options.CsvPath == "" {
+	if *s.Options.CSVPath == "" {
 		return
 	}
 
@@ -159,27 +155,22 @@ func (s *Session) WriteToCsv(line []string) {
 	s.CsvWriter.Flush()
 }
 
-func GetSession() *Session {
-	sessionSync.Do(func() {
-		session = &Session{
-			Context:      context.Background(),
-			Repositories: make(chan GitResource, 1000),
-			Gists:        make(chan string, 100),
-			Comments:     make(chan string, 1000),
-		}
+func NewSession(ctx context.Context, o *Options) (*Session, error) {
+	s := &Session{
+		// TODO: Remove (contexts should not be embedded in structs)
+		Context:      ctx,
+		Repositories: make(chan GitResource, 1000),
+		Gists:        make(chan string, 100),
+		Comments:     make(chan string, 1000),
+		Options:      &DefaultOptions,
+	}
 
-		if session.Options, err = ParseOptions(); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		if session.Config, err = ParseConfig(session.Options); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		session.Start()
-	})
-
-	return session
+	s.Options.Merge(o)
+	sc, err := ParseConfig(s.Options)
+	if err != nil {
+		return nil, fmt.Errorf("parse config: %w", err)
+	}
+	s.Config = sc
+	s.Start()
+	return s, nil
 }

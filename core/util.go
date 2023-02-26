@@ -9,8 +9,8 @@ import (
 	"strings"
 )
 
-func GetTempDir(suffix string) string {
-	dir := filepath.Join(*session.Options.TempDirectory, suffix)
+func GetTempDir(s *Session, suffix string) string {
+	dir := filepath.Join(*s.Options.TempDirectory, suffix)
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		os.MkdirAll(dir, os.ModePerm)
@@ -32,12 +32,6 @@ func PathExists(path string) bool {
 	}
 
 	return false
-}
-
-func LogIfError(text string, err error) {
-	if err != nil {
-		GetSession().Log.Error("%s (%s", text, err.Error())
-	}
 }
 
 func GetHash(s string) string {

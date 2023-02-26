@@ -28,16 +28,16 @@ func NewMatchFile(path string) MatchFile {
 	}
 }
 
-func IsSkippableFile(path string) bool {
+func IsSkippableFile(s *Session, path string) bool {
 	extension := strings.ToLower(filepath.Ext(path))
 
-	for _, skippableExt := range session.Config.BlacklistedExtensions {
+	for _, skippableExt := range s.Config.BlacklistedExtensions {
 		if extension == skippableExt {
 			return true
 		}
 	}
 
-	for _, skippablePathIndicator := range session.Config.BlacklistedPaths {
+	for _, skippablePathIndicator := range s.Config.BlacklistedPaths {
 		skippablePathIndicator = strings.Replace(skippablePathIndicator, "{sep}", string(os.PathSeparator), -1)
 		if strings.Contains(path, skippablePathIndicator) {
 			return true
@@ -47,12 +47,12 @@ func IsSkippableFile(path string) bool {
 	return false
 }
 
-func (match MatchFile) CanCheckEntropy() bool {
+func (match MatchFile) CanCheckEntropy(s *Session) bool {
 	if match.Filename == "id_rsa" {
 		return false
 	}
 
-	for _, skippableExt := range session.Config.BlacklistedEntropyExtensions {
+	for _, skippableExt := range s.Config.BlacklistedEntropyExtensions {
 		if match.Extension == skippableExt {
 			return false
 		}
@@ -61,12 +61,12 @@ func (match MatchFile) CanCheckEntropy() bool {
 	return true
 }
 
-func GetMatchingFiles(dir string) []MatchFile {
+func GetMatchingFiles(s *Session, dir string) []MatchFile {
 	fileList := make([]MatchFile, 0)
-	maxFileSize := *session.Options.MaximumFileSize * 1024
+	maxFileSize := *s.Options.MaximumFileSize * 1024
 
 	filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		if err != nil || f.IsDir() || uint(f.Size()) > maxFileSize || IsSkippableFile(path) {
+		if err != nil || f.IsDir() || uint(f.Size()) > maxFileSize || IsSkippableFile(s, path) {
 			return nil
 		}
 		fileList = append(fileList, NewMatchFile(path))
