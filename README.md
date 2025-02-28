@@ -1,7 +1,7 @@
 <p align="center">
 <img src="./images/logo.png" height="30%" width="30%" />
 
-# 🚨 shhgit is no longer maintained 🚨
+# 🚨 shhgit is no longer maintained. If you need support or consultation for your secret scanning endeavours, drop me an e-mail paul@darkport.co.uk 🚨
 
 ## **shhgit helps secure forward-thinking development, operations, and security teams by finding secrets across their code before it leads to a security breach.**
 
