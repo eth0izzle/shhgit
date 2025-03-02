@@ -38,7 +38,7 @@ func ParseConfig(options *Options) (*Config, error) {
 	)
 
 	if len(*options.ConfigPath) > 0 {
-		data, err = ioutil.ReadFile(path.Join(*options.ConfigPath, "config.yaml"))
+		data, err = ioutil.ReadFile(path.Join(*options.ConfigPath, *options.ConfigName))
 		if err != nil {
 			return config, err
 		}
@@ -47,10 +47,10 @@ func ParseConfig(options *Options) (*Config, error) {
 		// Helps e.g. with Drone where workdir is different than shhgit dir
 		ex, err := os.Executable()
 		dir := filepath.Dir(ex)
-		data, err = ioutil.ReadFile(path.Join(dir, "config.yaml"))
+		data, err = ioutil.ReadFile(path.Join(dir, *options.ConfigName))
 		if err != nil {
 			dir, _ = os.Getwd()
-			data, err = ioutil.ReadFile(path.Join(dir, "config.yaml"))
+			data, err = ioutil.ReadFile(path.Join(dir, *options.ConfigName))
 			if err != nil {
 				return config, err
 			}

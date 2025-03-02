@@ -30,6 +30,7 @@ var LogColors = map[int]*color.Color{
 
 type Logger struct {
 	sync.Mutex
+	s *Session
 
 	debug  bool
 	silent bool
@@ -61,10 +62,10 @@ func (l *Logger) Log(level int, format string, args ...interface{}) {
 		fmt.Printf("\r"+format+"\n", args...)
 	}
 
-	if level > WARN && session.Config.Webhook != "" {
+	if level > WARN && l.s.Config.Webhook != "" {
 		text := colorStrip(fmt.Sprintf(format, args...))
-		payload := fmt.Sprintf(session.Config.WebhookPayload, text)
-		http.Post(session.Config.Webhook, "application/json", strings.NewReader(payload))
+		payload := fmt.Sprintf(l.s.Config.WebhookPayload, text)
+		http.Post(l.s.Config.Webhook, "application/json", strings.NewReader(payload))
 	}
 
 	if level == FATAL {
