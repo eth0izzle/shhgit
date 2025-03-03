@@ -15,10 +15,19 @@ type MatchFile struct {
 }
 
 func NewMatchFile(path string) MatchFile {
+	maxFileSize := *session.Options.MaximumFileSize * 1024
 	path = filepath.ToSlash(path)
 	_, filename := filepath.Split(path)
 	extension := filepath.Ext(path)
-	contents, _ := ioutil.ReadFile(path)
+
+	var contents []byte
+	fi, err := os.Stat(path)
+	if err == nil {
+		size := fi.Size()
+		if size < int64(maxFileSize) {
+			contents, _ = ioutil.ReadFile(path)
+		}
+	}
 
 	return MatchFile{
 		Path:      path,
@@ -63,10 +72,9 @@ func (match MatchFile) CanCheckEntropy() bool {
 
 func GetMatchingFiles(dir string) []MatchFile {
 	fileList := make([]MatchFile, 0)
-	maxFileSize := *session.Options.MaximumFileSize * 1024
 
 	filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		if err != nil || f.IsDir() || uint(f.Size()) > maxFileSize || IsSkippableFile(path) {
+		if err != nil || f.IsDir() || IsSkippableFile(path) {
 			return nil
 		}
 		fileList = append(fileList, NewMatchFile(path))
